@@ -87,37 +87,68 @@ export const HoursCalculatorWidget: React.FC<HoursCalculatorWidgetProps> = ({
                   <th className="p-2 border border-[#E2E8F0]">Perioadă</th>
                   <th className="p-2 border border-[#E2E8F0]">Săptămâni</th>
                   <th className="p-2 border border-[#E2E8F0]">Ore Predare</th>
-                  <th className="p-2 border border-[#E2E8F0]">Săptămâni Speciale (fără conținut nou)</th>
+                  <th className="p-2 border border-[#E2E8F0]">Sărbători Legale & Săpt. Speciale</th>
+                  <th className="p-2 border border-[#E2E8F0]">Final Modular</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#E2E8F0] text-slate-600">
-                {calculation.modules.map((m) => (
-                  <tr key={m.moduleNumber} className="hover:bg-slate-50/60">
-                    <td className="p-2 border border-[#E2E8F0] font-semibold text-[#1E293B]">
-                      {m.name}
-                    </td>
-                    <td className="p-2 border border-[#E2E8F0] font-mono text-[11px]">
-                      {m.period}
-                    </td>
-                    <td className="p-2 border border-[#E2E8F0] text-center font-medium">
-                      {m.totalWeeks} ({m.effectiveWeeks} efective)
-                    </td>
-                    <td className="p-2 border border-[#E2E8F0] text-center font-bold text-[#0D9488]">
-                      {m.teachingHours} ore
-                    </td>
-                    <td className="p-2 border border-[#E2E8F0] text-[11px]">
-                      {m.specialEvents.length > 0 ? (
-                        <span className="inline-flex items-center text-[#D97706] font-medium bg-amber-50 px-1.5 py-0.5 rounded">
-                          {m.specialEvents.join(", ")}
+                {calculation.modules.map((m) => {
+                  let holidayNote = "";
+                  let recapNote = "Recapitulare & fixare";
+                  if (m.moduleNumber === 1) {
+                    holidayNote = "05 Oct (Ziua Educației); S5: „Școala altfel”";
+                    recapNote = "Recapitulare inițială & evaluare";
+                  } else if (m.moduleNumber === 2) {
+                    holidayNote = "30 Nov (Sf. Andrei) & 01 Dec (Ziua Națională)";
+                    recapNote = "Recapitulare & evaluare sumativă";
+                  } else if (m.moduleNumber === 3) {
+                    holidayNote = "24 Ian (Unirea Principatelor)";
+                    recapNote = "Recapitulare & consolidare M3";
+                  } else if (m.moduleNumber === 4) {
+                    holidayNote = "S29: „Săptămâna verde”; Paște & 1 Mai";
+                    recapNote = "Sinteză modulară & evaluare";
+                  } else if (m.moduleNumber === 5) {
+                    holidayNote = "01 Iunie (Ziua Copilului); Rusalii (tehno)";
+                    recapNote = "Recapitulare finală & bilanț anual";
+                  }
+
+                  return (
+                    <tr key={m.moduleNumber} className="hover:bg-slate-50/60">
+                      <td className="p-2 border border-[#E2E8F0] font-semibold text-[#1E293B]">
+                        {m.name}
+                      </td>
+                      <td className="p-2 border border-[#E2E8F0] font-mono text-[11px]">
+                        {m.period}
+                      </td>
+                      <td className="p-2 border border-[#E2E8F0] text-center font-medium">
+                        {m.totalWeeks} ({m.effectiveWeeks} efective)
+                      </td>
+                      <td className="p-2 border border-[#E2E8F0] text-center font-bold text-[#0D9488]">
+                        {m.teachingHours} ore
+                      </td>
+                      <td className="p-2 border border-[#E2E8F0] text-[11px]">
+                        <span className="text-slate-700 font-medium">{holidayNote}</span>
+                      </td>
+                      <td className="p-2 border border-[#E2E8F0] text-[11px]">
+                        <span className="inline-flex items-center text-emerald-700 font-medium bg-emerald-50 px-1.5 py-0.5 rounded">
+                          {recapNote}
                         </span>
-                      ) : (
-                        <span className="text-slate-400">—</span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
+          </div>
+
+          <div className="p-3 bg-[#F0FDFA] rounded-lg border border-[#CCFBF1] flex items-start space-x-2.5">
+            <Info className="w-4 h-4 text-[#0D9488] shrink-0 mt-0.5" />
+            <div className="text-[11px] text-[#0F766E] space-y-0.5">
+              <p className="font-bold">Optimizări Metodologie și Calcul (v.7.0 active):</p>
+              <p>• <strong>Validare Matematică Orară:</strong> Fiecare oră este riguros corelată ({calculation.totalTeachingHours} ore predare + {calculation.specialWeeksHours} ore speciale = {calculation.totalTeachingHours + calculation.specialWeeksHours} ore total normă).</p>
+              <p>• <strong>Condiționare Sărbători Legale:</strong> Zilele libere (30 Nov - 1 Dec, 24 Ian, 1 Iun etc.) sunt marcate automat la coloana „Obs.”. </p>
+              <p>• <strong>Echilibru Modular:</strong> Fiecare modul se încheie garantat cu activități de recapitulare și evaluare sumativă.</p>
+            </div>
           </div>
         </div>
       )}

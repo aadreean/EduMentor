@@ -13,6 +13,7 @@ import {
   FileSpreadsheet,
   Calendar,
   AlertCircle,
+  ArrowRight,
 } from "lucide-react";
 import { ChatMessage, DocumentType, TechnicalHeaderData } from "../types";
 import { copyTableToClipboard, exportWordDocument } from "../utils/fileHelpers";
@@ -52,6 +53,28 @@ export const PreviewHall: React.FC<PreviewHallProps> = ({
   const previewContainerRef = useRef<HTMLDivElement>(null);
   const chatBottomRef = useRef<HTMLDivElement>(null);
 
+  // Check for multi-part modular annual plan (M1-M2 and M3-M5)
+  const assistantMessagesWithTables = messages.filter(
+    (m) => m.role === "assistant" && m.content.includes("|") && m.content.includes("---")
+  );
+
+  let combinedDocument = "";
+  if (assistantMessagesWithTables.length > 1) {
+    const m1m2Msg = assistantMessagesWithTables.find((m) =>
+      /modul(ul)?\s*1/i.test(m.content) && /modul(ul)?\s*2/i.test(m.content)
+    );
+    const m3m5Msg = assistantMessagesWithTables.find((m) =>
+      m !== m1m2Msg && (/modul(ul)?\s*3/i.test(m.content) || /modul(ul)?\s*4/i.test(m.content) || /modul(ul)?\s*5/i.test(m.content))
+    );
+
+    if (m1m2Msg && m3m5Msg) {
+      const cleanM1M2 = m1m2Msg.content
+        .replace(/💡\s*Am generat Modulele 1 și 2[\s\S]*?(?:anuală\.?|$)/gi, "")
+        .trim();
+      combinedDocument = `${cleanM1M2}\n\n${m3m5Msg.content}`;
+    }
+  }
+
   // Find latest message with document/table content
   const lastAssistantMessage = [...messages].reverse().find(
     (m) => m.role === "assistant" && m.content.includes("|") && m.content.includes("---")
@@ -60,11 +83,24 @@ export const PreviewHall: React.FC<PreviewHallProps> = ({
   // Or latest assistant message
   const latestAssistantMessage = [...messages].reverse().find((m) => m.role === "assistant");
 
-  const documentContent = lastAssistantMessage
-    ? lastAssistantMessage.content
-    : latestAssistantMessage && latestAssistantMessage.content.length > 200
-    ? latestAssistantMessage.content
-    : "";
+  const documentContent =
+    combinedDocument ||
+    (lastAssistantMessage
+      ? lastAssistantMessage.content
+      : latestAssistantMessage && latestAssistantMessage.content.length > 200
+      ? latestAssistantMessage.content
+      : "");
+
+  // Check if we should prompt the user to continue with M3-M5
+  const showContinueM3M5 = Boolean(
+    !combinedDocument &&
+    lastAssistantMessage &&
+    /modul(ul)?\s*1/i.test(lastAssistantMessage.content) &&
+    /modul(ul)?\s*2/i.test(lastAssistantMessage.content) &&
+    !/modul(ul)?\s*5/i.test(lastAssistantMessage.content) &&
+    (/continu[aă]\s+cu\s+m3-m5/i.test(lastAssistantMessage.content) ||
+     lastAssistantMessage.content.includes("💡 Am generat Modulele 1 și 2"))
+  );
 
   useEffect(() => {
     if (activeTab === "chat") {
@@ -279,6 +315,69 @@ export const PreviewHall: React.FC<PreviewHallProps> = ({
                 <div className="markdown-body font-academic text-xs sm:text-sm leading-relaxed">
                   <Markdown remarkPlugins={[remarkGfm]}>{documentContent}</Markdown>
                 </div>
+
+                {/* Buton acțiune modulară pentru finalizarea planificării cu M3-M5 */}
+                {showContinueM3M5 && (
+                  <div className="my-6 p-4 bg-[#F0FDFA] border border-[#0D9488]/30 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xs">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-9 h-9 rounded-lg bg-[#0D9488] text-white flex items-center justify-center shrink-0">
+                        <ArrowRight className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-slate-800">
+                          Modulele 1 și 2 au fost generate cu succes.
+                        </p>
+                        <p className="text-[11px] text-slate-600">
+                          Finalizează planificarea anuală cu Modulele 3, 4 și 5 conform calendarului școlar 2026-2027.
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => onSendMessage("Continuă cu M3-M5")}
+                      disabled={isLoading}
+                      className="px-4 py-2 bg-[#0D9488] hover:bg-[#0F766E] text-white text-xs font-bold rounded-lg shadow-xs transition-all flex items-center space-x-2 shrink-0 cursor-pointer"
+                    >
+                      <span>Continuă cu M3-M5</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
+
+                {/* Card Export conform Regulii 5 din instrucțiunile finale v.5.0 */}
+                <div className="mt-8 pt-6 border-t border-[#E2E8F0] bg-[#F8FAF9] -mx-6 sm:-mx-8 -mb-6 sm:-mb-8 p-6 rounded-b-xl flex flex-col sm:flex-row items-center justify-between gap-4">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 flex items-center justify-center shrink-0">
+                      <FileText className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-bold text-slate-800">
+                        Fișierul este pregătit pentru descărcare
+                      </h4>
+                      <p className="text-[11px] text-slate-500">
+                        Format A4 Landscape cu margini standard conform normelor metodice
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2.5 w-full sm:w-auto">
+                    <button
+                      type="button"
+                      onClick={handleDownloadDocx}
+                      className="flex-1 sm:flex-none px-3.5 py-2 bg-white hover:bg-slate-50 border border-[#CBD5E1] hover:border-[#0D9488] text-[#1E293B] text-xs font-bold rounded-lg shadow-xs flex items-center justify-center space-x-1.5 transition-all cursor-pointer"
+                    >
+                      <Download className="w-4 h-4 text-[#0D9488]" />
+                      <span>Descarcă format .DOCX</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handlePrintPdf}
+                      className="flex-1 sm:flex-none px-3.5 py-2 bg-[#0D9488] hover:bg-[#0F766E] text-white text-xs font-bold rounded-lg shadow-xs flex items-center justify-center space-x-1.5 transition-all cursor-pointer"
+                    >
+                      <Printer className="w-4 h-4" />
+                      <span>Descarcă format .PDF</span>
+                    </button>
+                  </div>
+                </div>
               </div>
             ) : (
               /* Draft de primire când nu s-a generat încă documentul */
@@ -412,6 +511,26 @@ export const PreviewHall: React.FC<PreviewHallProps> = ({
         <div className="flex items-center justify-between text-[11px] text-slate-500 pt-1">
           <div className="flex items-center space-x-2 overflow-x-auto">
             <span className="text-slate-400 hidden sm:inline">Sugestii rapide:</span>
+            {showContinueM3M5 && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => onSendMessage("Continuă cu M3-M5")}
+                  className="text-white bg-[#0D9488] hover:bg-[#0F766E] px-2 py-0.5 rounded font-semibold text-[11px] cursor-pointer shrink-0 flex items-center space-x-1"
+                >
+                  <span>⏩ Continuă cu M3-M5</span>
+                </button>
+                <span className="text-slate-300">•</span>
+              </>
+            )}
+            <button
+              type="button"
+              onClick={() => onSendMessage("Verifică bilanțul matematic orar și marcarea sărbătorilor legale conform normelor v.7.0.")}
+              className="text-[#0D9488] hover:underline cursor-pointer truncate"
+            >
+              Bilanț orar v.7.0
+            </button>
+            <span className="text-slate-300">•</span>
             <button
               type="button"
               onClick={() => onSendMessage("Adaugă 2 ore de recapitulare și evaluare sumativă la finalul Modulului 2.")}
