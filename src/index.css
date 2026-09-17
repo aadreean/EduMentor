@@ -1,0 +1,97 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    background-color: #F8FAF9;
+    color: #1E293B;
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+}
+
+/* Academic Serif font for official document preview simulating A4 */
+.font-academic {
+  font-family: 'Times New Roman', Cambria, Georgia, serif;
+}
+
+/* Custom styling for educational Markdown tables in A4 Landscape preview */
+#plan-table-content table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.825rem;
+  line-height: 1.4;
+  background-color: #ffffff;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
+#plan-table-content th {
+  background-color: #f1f5f9;
+  color: #0f172a;
+  font-weight: 700;
+  text-align: left;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid #cbd5e1;
+  vertical-align: middle;
+}
+
+#plan-table-content td {
+  padding: 0.55rem 0.75rem;
+  border: 1px solid #cbd5e1;
+  vertical-align: top;
+  color: #1e293b;
+}
+
+#plan-table-content tr:nth-child(even) {
+  background-color: #f8fafc;
+}
+
+#plan-table-content tr:hover {
+  background-color: #f0fdf4;
+}
+
+/* Antet Oficial & Caseta Tehnică typography */
+#plan-table-content strong {
+  color: #0f172a;
+  font-weight: 700;
+}
+
+#plan-table-content p {
+  margin-top: 0.35rem;
+  margin-bottom: 0.35rem;
+  line-height: 1.5;
+}
+
+#plan-table-content ul, #plan-table-content ol {
+  margin: 0.35rem 0 0.5rem 1.25rem;
+}
+
+#plan-table-content li {
+  margin-bottom: 0.25rem;
+}
+
+/* Special week highlighted styling */
+.special-week-badge {
+  color: #D97706;
+  background-color: #FEF3C7;
+  padding: 0.15rem 0.5rem;
+  border-radius: 0.25rem;
+  font-weight: 600;
+}
+
+/* Print optimizations for teachers */
+@media print {
+  header, #btn-copy-word, .no-print {
+    display: none !important;
+  }
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+  #plan-table-content table {
+    border: 1px solid #000 !important;
+  }
+  #plan-table-content th, #plan-table-content td {
+    border: 1px solid #000 !important;
+  }
+}
+
