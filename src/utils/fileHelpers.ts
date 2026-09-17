@@ -184,6 +184,9 @@ export function exportWordDocument(filename: string, content: string, title: str
     </head>
     <body>
       ${content}
+      <div style="margin-top: 24px; border-top: 1px solid #ccc; padding-top: 6px; font-size: 8.5pt; color: #666; text-align: right; font-family: Arial, sans-serif;">
+        Document generat cu EduMetodist România (2026-2027) • by profesor Adrian Podar
+      </div>
     </body>
     </html>
   `;

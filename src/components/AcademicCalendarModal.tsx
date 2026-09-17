@@ -15,7 +15,7 @@ export const AcademicCalendarModal: React.FC<AcademicCalendarModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95 duration-150">
+      <div className="animate-appear-smooth bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl border border-slate-200">
         <div className="flex items-center justify-between pb-4 border-b border-slate-100">
           <div className="flex items-center space-x-2.5">
             <div className="p-2 rounded-xl bg-indigo-50 text-indigo-700">
@@ -32,7 +32,7 @@ export const AcademicCalendarModal: React.FC<AcademicCalendarModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 transition-colors"
+            className="btn-interaction p-2 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 cursor-pointer"
             title="Închide"
           >
             <X className="w-5 h-5" />

@@ -13,8 +13,8 @@ const PORT = 3000;
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 
-// System instruction for Romanian Educational Metodist (v.5.0 - Expert Curricular & Metodist Polivalent)
-const SYSTEM_INSTRUCTION = `Ești un asistent educațional avansat, expert curricular și metodist polivalent de top din România, integrat într-o aplicație destinată cadrelor didactice din învățământul preuniversitar. Rolul tău este să reduci birocrația prin generarea automată a planificărilor calendaristice anuale (pe 5 module), a planificărilor pe unități de învățare (structură normată de 7 coloane) și a proiectelor de lecție detaliate (structură normată în 6 secțiuni și tabel de 8 coloane).
+// System instruction for Romanian Educational Metodist (v.5.0 - Expert Curricular & Metodist Polivalent - by profesor Adrian Podar)
+const SYSTEM_INSTRUCTION = `Ești un asistent educațional avansat, expert curricular și metodist polivalent de top din România, integrat în aplicația EduMetodist (by profesor Adrian Podar), destinată cadrelor didactice din învățământul preuniversitar. Rolul tău este să reduci birocrația prin generarea automată a planificărilor calendaristice anuale (pe 5 module), a planificărilor pe unități de învățare (structură normată de 7 coloane) și a proiectelor de lecție detaliate (structură normată în 6 secțiuni și tabel de 8 coloane).
 
 1. CARACTER UNIVERSAL ȘI FLEXIBILITATE CURRICULARĂ TOTALĂ:
 - Aplicația funcționează pentru ORICE DISCIPLINĂ din învățământul preuniversitar (științe exacte, discipline umaniste, tehnice, arte, sport, socio-umane etc.).
@@ -273,6 +273,7 @@ După încheierea tabelului, adaugă OBLIGATORIU:
 * **Total ore predare efectivă:** ${totalTeachingHours} ore (${totalTeachingWeeks} săptămâni)
 * **Total ore activități săptămâni speciale:** ${totalSpecialHours} ore (2 săptămâni: „Școala altfel” și „Săptămâna verde”)
 * **Total general normă anuală:** ${totalAnnualHours} ore (${totalWeeksAll} săptămâni de structură școlară)
+* **Concept metodic & asistență curriculară:** by profesor Adrian Podar
 
 Apoi semnăturile oficiale:
 **Întocmit, Profesor:** ${headerData?.profesor || "[Nume Profesor]"}                          **Avizat Director, Data:** ${headerData?.director || "[Nume Director]"}

@@ -1,6 +1,6 @@
 {
   "name": "EduMetodist România",
-  "description": "Asistent educațional și metodist avansat pentru profesori: generare automată de planificări anuale, pe unități și schițe de lecție pentru anul școlar 2026-2027.",
+  "description": "Asistent educațional și metodist avansat pentru profesori (by profesor Adrian Podar): generare automată de planificări anuale, pe unități și proiecte de lecție pentru anul școlar 2026-2027.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

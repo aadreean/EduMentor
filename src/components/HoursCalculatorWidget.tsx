@@ -15,7 +15,7 @@ export const HoursCalculatorWidget: React.FC<HoursCalculatorWidgetProps> = ({
   const calculation = calculateAcademicHours(clasa, oreSaptamana);
 
   return (
-    <div className="bg-white rounded-xl border border-[#E2E8F0] overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+    <div className="card-lift bg-white rounded-xl border border-[#E2E8F0] overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
       <div
         onClick={() => setIsExpanded(!isExpanded)}
         className="p-3.5 bg-[#F8FAF9] hover:bg-slate-50 flex items-center justify-between cursor-pointer transition-colors duration-150"
@@ -52,7 +52,7 @@ export const HoursCalculatorWidget: React.FC<HoursCalculatorWidgetProps> = ({
       </div>
 
       {isExpanded && (
-        <div className="p-4 border-t border-[#E2E8F0] bg-white text-xs space-y-3">
+        <div className="animate-appear-smooth p-4 border-t border-[#E2E8F0] bg-white text-xs space-y-3">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
             <div className="p-2.5 bg-[#F8FAF9] rounded-lg border border-[#E2E8F0]">
               <div className="text-slate-400 text-[10px] uppercase font-bold">Total Săptămâni</div>

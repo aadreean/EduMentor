@@ -29,7 +29,7 @@ export default function App() {
     manualSuport: "Manual Ed. Art Klett",
     clasa: "Clasa a VII-a",
     nrOreSaptamana: "4 ore/săpt.",
-    profesor: "Prof. Ionescu Maria",
+    profesor: "Prof. Adrian Podar",
     director: "Prof. dr. Popescu Ion",
     respCatedra: "Prof. Georgescu Elena",
     nrInregistrare: ".......................",
@@ -55,7 +55,7 @@ export default function App() {
     {
       id: "welcome-1",
       role: "assistant",
-      content: `Bună ziua, stimate cadru didactic! Sunt asistentul tău educațional și metodist de specialitate pentru anul școlar 2026-2027.
+      content: `Bună ziua, stimate cadru didactic! Sunt asistentul tău educațional și metodist de specialitate pentru anul școlar 2026-2027 (dezvoltat **by profesor Adrian Podar**).
 
 Rolul meu este să reduc birocrația didactică prin generarea automată a planificărilor anuale pe cele 5 module, a planificărilor pe unități de învățare (7 coloane) și a proiectelor de lecție.
 
@@ -119,7 +119,7 @@ Apasă pe **„Încarcă Exemplu Demo”** din colțul de sus pentru a testa ins
           ? "Prof. Andrei Radu"
           : sample.id === "istorie-8"
           ? "Prof. Popa Cristian"
-          : "Prof. Ionescu Maria",
+          : "Prof. Adrian Podar",
       director: "Prof. dr. Popescu Ion",
       respCatedra:
         sample.id === "engleza-9" ? "Prof. Brown Sarah" : "Prof. Georgescu Elena",
@@ -329,6 +329,23 @@ Apasă pe butonul de generare din previzualizare pentru a redacta documentul!`,
           </div>
         </div>
       </main>
+
+      {/* Footer Oficial EduMetodist */}
+      <footer className="mt-8 border-t border-[#E2E8F0] bg-white py-4 px-4 sm:px-6 text-center text-xs text-slate-500">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2.5">
+          <div className="flex items-center space-x-2">
+            <span className="font-semibold text-[#1E293B]">EduMetodist România</span>
+            <span className="text-slate-300">•</span>
+            <span>Anul Școlar 2026-2027</span>
+          </div>
+          <div className="text-slate-600 font-medium">
+            Concept metodic & dezvoltare: <span className="text-[#0D9488] font-bold">by profesor Adrian Podar</span>
+          </div>
+          <div className="text-[11px] text-slate-400">
+            Conform standardelor MEC & Structura pe 5 Module
+          </div>
+        </div>
+      </footer>
 
       <AcademicCalendarModal
         isOpen={isCalendarOpen}

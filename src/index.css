@@ -24,6 +24,67 @@
   margin-bottom: 1rem;
 }
 
+/* ==========================================================================
+   UX/UI Motion & Micro-interactions (Curate, discrete și elegante)
+   ========================================================================== */
+
+/* 1. Card Lift - Efect de plutire discret la hover */
+.card-lift {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  will-change: transform, box-shadow;
+}
+
+.card-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+}
+
+/* 2. Micro-interacțiuni tactile pentru butoane */
+.btn-interaction {
+  transition: all 0.2s ease-in-out;
+  will-change: transform;
+}
+
+.btn-interaction:hover:not(:disabled) {
+  transform: scale(1.02);
+}
+
+.btn-interaction:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+/* 3. Apariție lină (Fade-in cu coborâre de sus în jos pe 10px, 0.4s) */
+@keyframes slideDownFade {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-appear-smooth {
+  animation: slideDownFade 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Variantă cu urcare lină de jos în sus pe 10px pentru elemente de subsol / toast-uri */
+@keyframes slideUpFade {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-appear-up {
+  animation: slideUpFade 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
 #plan-table-content th {
   background-color: #f1f5f9;
   color: #0f172a;

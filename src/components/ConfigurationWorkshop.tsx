@@ -154,7 +154,7 @@ export const ConfigurationWorkshop: React.FC<ConfigurationWorkshopProps> = ({
   return (
     <div className="space-y-4">
       {/* CARD 1: Coordonate Tehnice */}
-      <div className="bg-white rounded-xl border border-[#E2E8F0] p-4 sm:p-5 shadow-[0_1px_3px_rgba(0,0,0,0.02)] transition-all duration-200">
+      <div className="card-lift bg-white rounded-xl border border-[#E2E8F0] p-4 sm:p-5 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
         <div className="flex items-center justify-between pb-3 mb-3 border-b border-[#E2E8F0]">
           <div className="flex items-center space-x-2">
             <div className="w-8 h-8 rounded-lg bg-[#F0FDFA] border border-[#CCFBF1] flex items-center justify-center text-[#0D9488]">
@@ -340,7 +340,7 @@ export const ConfigurationWorkshop: React.FC<ConfigurationWorkshopProps> = ({
       </div>
 
       {/* CARD 2: Tipologie Didactică */}
-      <div className="bg-white rounded-xl border border-[#E2E8F0] p-4 sm:p-5 shadow-[0_1px_3px_rgba(0,0,0,0.02)] transition-all duration-200">
+      <div className="card-lift bg-white rounded-xl border border-[#E2E8F0] p-4 sm:p-5 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
         <div className="pb-3 mb-3 border-b border-[#E2E8F0]">
           <h2 className="text-xs font-bold text-[#1E293B] uppercase tracking-wider">
             Cardul 2: Tipologie Didactică
@@ -355,7 +355,7 @@ export const ConfigurationWorkshop: React.FC<ConfigurationWorkshopProps> = ({
           <button
             type="button"
             onClick={() => setTipDocument("Planificare anuală")}
-            className={`w-full p-3.5 rounded-xl border text-left flex items-start space-x-3 transition-all duration-200 cursor-pointer ${
+            className={`btn-interaction w-full p-3.5 rounded-xl border text-left flex items-start space-x-3 cursor-pointer ${
               tipDocument === "Planificare anuală"
                 ? "bg-[#0D9488] text-white border-[#0D9488] shadow-xs"
                 : "bg-white text-[#1E293B] border-[#E2E8F0] hover:border-[#0D9488] hover:bg-[#F0FDFA]"
@@ -386,7 +386,7 @@ export const ConfigurationWorkshop: React.FC<ConfigurationWorkshopProps> = ({
           <button
             type="button"
             onClick={() => setTipDocument("Planificare pe unitate")}
-            className={`w-full p-3.5 rounded-xl border text-left flex items-start space-x-3 transition-all duration-200 cursor-pointer ${
+            className={`btn-interaction w-full p-3.5 rounded-xl border text-left flex items-start space-x-3 cursor-pointer ${
               tipDocument === "Planificare pe unitate"
                 ? "bg-[#0D9488] text-white border-[#0D9488] shadow-xs"
                 : "bg-white text-[#1E293B] border-[#E2E8F0] hover:border-[#0D9488] hover:bg-[#F0FDFA]"
@@ -417,7 +417,7 @@ export const ConfigurationWorkshop: React.FC<ConfigurationWorkshopProps> = ({
           <button
             type="button"
             onClick={() => setTipDocument("Schiță de lecție")}
-            className={`w-full p-3.5 rounded-xl border text-left flex items-start space-x-3 transition-all duration-200 cursor-pointer ${
+            className={`btn-interaction w-full p-3.5 rounded-xl border text-left flex items-start space-x-3 cursor-pointer ${
               tipDocument === "Schiță de lecție"
                 ? "bg-[#0D9488] text-white border-[#0D9488] shadow-xs"
                 : "bg-white text-[#1E293B] border-[#E2E8F0] hover:border-[#0D9488] hover:bg-[#F0FDFA]"
@@ -447,7 +447,7 @@ export const ConfigurationWorkshop: React.FC<ConfigurationWorkshopProps> = ({
       </div>
 
       {/* CARD 3: Fișiere */}
-      <div className="bg-white rounded-xl border border-[#E2E8F0] p-4 sm:p-5 shadow-[0_1px_3px_rgba(0,0,0,0.02)] transition-all duration-200">
+      <div className="card-lift bg-white rounded-xl border border-[#E2E8F0] p-4 sm:p-5 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
         <div className="flex items-center justify-between pb-3 mb-3 border-b border-[#E2E8F0]">
           <div>
             <h2 className="text-xs font-bold text-[#1E293B] uppercase tracking-wider">
