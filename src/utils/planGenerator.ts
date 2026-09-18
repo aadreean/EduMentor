@@ -1,4 +1,4 @@
-import { DocumentType, TechnicalHeaderData } from "../types";
+import { DocumentType, TechnicalHeaderData, formatClasaHeader } from "../types";
 import { calculateAcademicHours } from "../data/curriculumData";
 
 export interface PlanGenerationParams {
@@ -52,7 +52,7 @@ export function generatePedagogicalPlan(params: PlanGenerationParams): string {
 **Anul școlar:** 2026-2027                                  **Avizat resp. catedră:** ${headOfDeptName}
 **Disciplina:** ${disciplina || "Disciplină de specialitate"}                          **Nr. înregistrare:** ${regNr}
 **Manual/Suport:** ${manual}                    **Vacanță februarie (județeană):** ${headerData.vacantaFebruarie || "Săptămâna 2 (22 - 28 Februarie 2027)"}
-**Clasa:** ${clasa}
+**Clasa:** ${formatClasaHeader(clasa, headerData)}
 **Nr. de ore pe săptămână:** ${hoursPerWeek} ${hoursPerWeek === 1 ? "oră/săpt." : "ore/săpt."}
 **Profesor:** ${teacherName}
 
@@ -168,6 +168,41 @@ export function generatePedagogicalPlan(params: PlanGenerationParams): string {
 | 5. Recapitulare integratoare și evaluare sumativă a unității | 1.1, 2.2, 3.1, 4.1 | • Sinteza noțiunilor asimilate prin intermediul unui joc didactic / quiz<br>• Aplicarea testului sumativ al unității de învățare | Test de evaluare sumativă, fișă de barem, lucru individual | Test docimologic, evaluare sumativă scrisă | 2 ore<br>Modulul 1<br>Săpt. 4 | Măsuri remediale consemnate |
 
 **Întocmit, Profesor:** ${teacherName}                          **Avizat Director, Data:** ${directorName}
+`;
+  }
+
+  if (tipDocument === "Planificare integrată (Primar)") {
+    return `${headerSection}
+                                **PLANIFICARE INTEGRATĂ TEMATICĂ (ÎNVĂȚĂMÂNT PRIMAR) - ANUL ȘCOLAR 2026-2027**
+                                            **Abordare Transdisciplinară (CLR • MEM • DP • AVAP • MM)**
+
+| Tema Unității | Discipline integrate | Competențe Specifice | Conținuturi | Nr. Ore | Săptămâna |
+|---|---|---|---|---|---|
+| **MODULUL 1 (07.09 - 23.10.2026)** | | | | | |
+| 1. Din nou la școală - Emoții și prieteni | CLR, DP, MM | CLR: 1.1, 1.2; DP: 1.1, 2.1; MM: 1.1 | Reguli ale clasei, comunicare orală, exprimarea emoțiilor de început, cântece de bun venit | ${hoursPerWeek} ore | S1 - S2 |
+| 2. Poveștile Toamnei - Explorare și numere | CLR, MEM, AVAP | CLR: 1.3, 2.1; MEM: 1.1, 3.1; AVAP: 1.1 | Textul narativ scurt, numerele naturale, fenomene ale toamnei, colaj din frunze uscate | ${hoursPerWeek} ore | S3 - S4 |
+| 3. Programul Național „Mai mult decât Școala altfel” | Toate disciplinele | Competențe non-formale | Ateliere de creație, vizită la muzeu, jocuri de colaborare (05.10 Ziua Educației) | - | S5 |
+| 4. Corpul meu și lumea vie | MEM, DP, AVAP | MEM: 1.2, 4.1; DP: 1.2; AVAP: 2.1 | Igienă personală, alimentație sănătoasă, modelaj, forme geometrice în natură | ${hoursPerWeek} ore | S6 - S7 |
+| **MODULUL 2 (02.11 - 22.12.2026)** | | | | | |
+| 5. Tradiții și valori naționale | CLR, MEM, AVAP, MM | CLR: 2.2, 3.1; MEM: 1.3; MM: 2.1 | Simboluri românești, 1 Decembrie, colinde, adunarea și scăderea numerelor, felicitări | ${hoursPerWeek * 2} ore | S8 - S11 |
+| 6. Iarna albă - Miracolul sărbătorilor | CLR, MEM, AVAP | CLR: 1.4, 2.3; MEM: 1.4, 5.1; AVAP: 2.2 | Povești de iarnă, probleme ilustrate, decorațiuni ecologice, evaluare sumativă M2 | ${hoursPerWeek} ore | S12 - S15 |
+| **MODULUL 3 (11.01 - 19.02.2027)** | | | | | |
+| 7. Călătorie în Univers și Pământul | MEM, CLR, AVAP | MEM: 3.1, 4.2; CLR: 2.1; AVAP: 1.2 | Sistemul Solar, măsurarea timpului, calendarul, machetă planetară, 24 Ianuarie | ${hoursPerWeek * 2} ore | S16 - S19 |
+| 8. Bilanț la mijloc de an școlar | Toate disciplinele | Evaluare formativă | Evaluare integrată transdisciplinară (înainte de vacanța mobilă din februarie) | ${hoursPerWeek} ore | S20 - S21 |
+| **MODULUL 4 (01.03 - 23.04.2027)** | | | | | |
+| 9. Trezirea naturii - Lumea plantelor și a animalelor | CLR, MEM, DP | CLR: 3.2, 4.1; MEM: 2.1, 4.1; DP: 2.2 | Înmulțirea și dezvoltarea plantelor, texte despre natură, compasiune față de viețuitoare | ${hoursPerWeek * 2} ore | S22 - S25 |
+| 10. Prietenii Pământului | MEM, AVAP, MM | MEM: 5.2; AVAP: 2.3; MM: 1.2 | Resurse regenerabile, reciclare, ritmuri muzicale din natură | ${hoursPerWeek} ore | S26 - S28 |
+| 11. Programul Național „Săptămâna verde” | Toate disciplinele | Educație ecologică | Proiecte ecologice practice, explorarea parcului/pădurii, colectare selectivă | - | S29 |
+| **MODULUL 5 (05.05 - 18.06.2027)** | | | | | |
+| 12. Comunitatea mea și meseriile viitorului | CLR, DP, MEM | CLR: 2.4, 4.2; DP: 3.1; MEM: 1.5 | Roluri în comunitate, orientare timpurie, măsurarea valorii (banii), 1 Iunie | ${hoursPerWeek} ore | S30 - S33 |
+| 13. Recapitulare anuală și portofoliul meu de școlar | Toate disciplinele | Toate C.S. | Expoziție cu lucrările elevilor, celebrarea progresului școlar, bilanț anual | ${hoursPerWeek} ore | S34 - S36 |
+
+### Notă metodologică pentru învățământul primar:
+* **Abordare integrată:** Conținuturile sunt organizate concentric pe teme transdisciplinare, asigurând trecerea firească de la observarea directă la conceptualizare.
+* **Evaluare:** Aprecierea se realizează prin calificative (FB, B, S, I) însoțite de descriptori de performanță și aprecieri motivaționale continue.
+* **Concept metodic & asistență curriculară:** autor prof. Adrian Podar
+
+**Întocmit, Profesor înv. primar:** ${teacherName}                  **Avizat Director, Data:** ${directorName}
 `;
   }
 

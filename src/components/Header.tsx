@@ -35,62 +35,63 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCalendar, onLoadSample, on
           </div>
         </div>
 
-        <div className="flex items-center space-x-2 sm:space-x-3">
+        <div className="flex items-center space-x-1 sm:space-x-2.5 shrink-0">
           <button
             onClick={onLoadSample}
             id="btn-load-sample-header"
             type="button"
-            className="btn-interaction inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded-lg text-[#0D9488] bg-[#F0FDFA] hover:bg-[#CCFBF1] border border-[#99F6E4] shadow-xs cursor-pointer"
+            className="btn-interaction inline-flex items-center px-2 sm:px-3 py-1.5 text-xs font-semibold rounded-lg text-[#0D9488] bg-[#F0FDFA] hover:bg-[#CCFBF1] border border-[#99F6E4] shadow-xs cursor-pointer"
             title="Încarcă rapid date demo pentru testare imediată"
           >
-            <Sparkles className="w-3.5 h-3.5 mr-1.5 text-[#0D9488]" />
-            <span className="hidden sm:inline">Încarcă</span> Exemplu Demo
+            <Sparkles className="w-3.5 h-3.5 sm:mr-1.5 text-[#0D9488]" />
+            <span className="hidden sm:inline">Exemplu Demo</span>
+            <span className="sm:hidden text-[11px] ml-1">Demo</span>
           </button>
 
           <button
             onClick={onOpenCalendar}
             id="btn-open-calendar-header"
             type="button"
-            className="btn-interaction inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-lg text-[#1E293B] bg-slate-50 hover:bg-slate-100 border border-[#E2E8F0] shadow-xs cursor-pointer"
+            className="btn-interaction hidden xs:inline-flex items-center px-2 sm:px-3 py-1.5 text-xs font-medium rounded-lg text-[#1E293B] bg-slate-50 hover:bg-slate-100 border border-[#E2E8F0] shadow-xs cursor-pointer"
             title="Vezi structura celor 5 module și săptămânile speciale"
           >
-            <Calendar className="w-3.5 h-3.5 mr-1.5 text-slate-600" />
-            <span className="hidden md:inline">Calendar</span> 2026-2027
+            <Calendar className="w-3.5 h-3.5 sm:mr-1.5 text-slate-600" />
+            <span className="hidden md:inline">Calendar 2026-2027</span>
+            <span className="md:hidden text-[11px] ml-1">Calendar</span>
           </button>
 
           <button
             onClick={onOpenChat}
             id="btn-open-chat-header"
             type="button"
-            className="btn-interaction inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded-lg text-[#0D9488] bg-[#F0FDFA] hover:bg-[#CCFBF1] border border-[#99F6E4] shadow-xs cursor-pointer"
+            className="btn-interaction inline-flex items-center px-2 sm:px-3 py-1.5 text-xs font-semibold rounded-lg text-[#0D9488] bg-[#F0FDFA] hover:bg-[#CCFBF1] border border-[#99F6E4] shadow-xs cursor-pointer"
             title="Deschide Asistentul Metodist & Căutare Google Search"
           >
-            <MessageSquare className="w-3.5 h-3.5 mr-1.5 text-[#0D9488]" />
-            <span className="hidden sm:inline">Asistent &</span> Căutare Edu
+            <MessageSquare className="w-3.5 h-3.5 sm:mr-1.5 text-[#0D9488]" />
+            <span className="hidden sm:inline">Asistent Edu</span>
+            <span className="sm:hidden text-[11px] ml-1">Asistent</span>
           </button>
 
-          <div className="flex items-center space-x-1.5 sm:space-x-2 pl-1 sm:pl-2 border-l border-slate-200">
+          <div className="flex items-center space-x-1 sm:space-x-1.5 pl-1 sm:pl-2 border-l border-slate-200">
             <a
               href="https://www.facebook.com/adrianvepodar/"
               target="_blank"
               rel="noopener noreferrer"
-              className="btn-interaction inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:text-[#0D9488] bg-slate-50 hover:bg-[#F0FDFA] rounded-lg border border-[#E2E8F0] hover:border-[#99F6E4] transition-all"
-              title="Trimite sugestii autorului pe Facebook"
+              className="btn-interaction inline-flex items-center justify-center p-1.5 sm:px-2.5 sm:py-1.5 text-xs font-semibold text-slate-700 hover:text-[#0D9488] bg-slate-50 hover:bg-[#F0FDFA] rounded-lg border border-[#E2E8F0] hover:border-[#99F6E4] transition-all"
+              title="Trimite sugestii autorului pe Facebook (prof. Adrian Podar)"
             >
               <Facebook className="w-3.5 h-3.5 text-[#1877F2] shrink-0" />
-              <span className="hidden sm:inline">Trimite sugestii</span>
-              <span className="sm:hidden text-[11px]">Sugestii</span>
+              <span className="hidden lg:inline ml-1">Sugestii</span>
             </a>
             <a
               href="https://www.youtube.com/@adrian_podar"
               target="_blank"
               rel="noopener noreferrer"
-              className="btn-interaction inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:text-rose-600 bg-slate-50 hover:bg-rose-50 rounded-lg border border-[#E2E8F0] hover:border-rose-200 transition-all"
-              title="Canal oficial YouTube - prof. Adrian Podar"
+              className="btn-interaction inline-flex items-center justify-center p-1.5 sm:px-2.5 sm:py-1.5 text-xs font-semibold text-slate-700 hover:text-rose-600 bg-slate-50 hover:bg-rose-50 rounded-lg border border-[#E2E8F0] hover:border-rose-200 transition-all"
+              title="Canal oficial YouTube - autor prof. Adrian Podar"
             >
               <Youtube className="w-3.5 h-3.5 text-[#FF0000] shrink-0" />
-              <span className="hidden sm:inline">Canal YouTube</span>
-              <span className="sm:hidden text-[11px]">YouTube</span>
+              <span className="hidden lg:inline ml-1">YouTube</span>
             </a>
           </div>
         </div>
