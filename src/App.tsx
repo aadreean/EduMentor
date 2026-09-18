@@ -7,7 +7,9 @@ import React, { useState } from "react";
 import { Header } from "./components/Header";
 import { AcademicCalendarModal } from "./components/AcademicCalendarModal";
 import { HoursCalculatorWidget } from "./components/HoursCalculatorWidget";
-import { ConfigurationWorkshop } from "./components/ConfigurationWorkshop";
+import { TechnicalHeaderSection } from "./components/TechnicalHeaderSection";
+import { FileUploadSection } from "./components/FileUploadSection";
+import { TypologyAndGenerateSection } from "./components/TypologyAndGenerateSection";
 import { PreviewHall } from "./components/PreviewHall";
 import { ChatMessage, DocumentType, FilePayload, TechnicalHeaderData } from "./types";
 import { SAMPLE_PACKS, STANDARD_TEMPLATES } from "./data/curriculumData";
@@ -15,7 +17,7 @@ import { SAMPLE_PACKS, STANDARD_TEMPLATES } from "./data/curriculumData";
 export default function App() {
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
-  // Parameters
+  // Parametrii didactici primari
   const [clasa, setClasa] = useState("Clasa a VII-a");
   const [oreSaptamana, setOreSaptamana] = useState(4);
   const [tipDocument, setTipDocument] = useState<DocumentType>("Planificare anuală");
@@ -37,53 +39,45 @@ export default function App() {
     isComplete: true,
   });
 
-  // 3 Essential Inputs
-  const [programaFile, setProgramaFile] = useState<FilePayload | null>(null);
-  const [programaText, setProgramaText] = useState("");
-
-  const [suportFile, setSuportFile] = useState<FilePayload | null>(null);
-  const [suportText, setSuportText] = useState("");
-
-  const [sablonFile, setSablonFile] = useState<FilePayload | null>(null);
+  // Multiple File Payloads
+  const [sablonFiles, setSablonFiles] = useState<FilePayload[]>([]);
   const [sablonText, setSablonText] = useState("");
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
 
+  const [programaFiles, setProgramaFiles] = useState<FilePayload[]>([]);
+  const [programaText, setProgramaText] = useState("");
+
+  const [suportFiles, setSuportFiles] = useState<FilePayload[]>([]);
+  const [suportText, setSuportText] = useState("");
+
   const [isLoading, setIsLoading] = useState(false);
 
-  // Initial welcome message
+  // Istoric mesaje / documente
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: "welcome-1",
       role: "assistant",
-      content: `Bună ziua, stimate cadru didactic! Sunt asistentul tău educațional și metodist de specialitate pentru anul școlar 2026-2027 (dezvoltat **by profesor Adrian Podar**).
+      content: `Bună ziua, stimate cadru didactic! Sunt asistentul tău educațional și metodist de specialitate pentru anul școlar 2026-2027 (dezvoltat de **autor prof. Adrian Podar**).
 
-Rolul meu este să reduc birocrația didactică prin generarea automată a planificărilor anuale pe cele 5 module, a planificărilor pe unități de învățare (7 coloane) și a proiectelor de lecție.
-
-Pentru a asigura o redactare pedagogică de top:
-1. Încarcă **Șablonul** (capul de tabel dorit) sau selectează modelul oficial MEC.
-2. Încarcă **Programa școlară** (pentru competențele specifice).
-3. Încarcă **Suportul de curs / Manualul** (pentru conținuturi reale).
-
-Apasă pe **„Încarcă Exemplu Demo”** din colțul de sus pentru a testa instant fluxul cu un curriculum complet de Limba Română sau Limba Engleză!`,
+Aplicația este organizată într-un **flux logic vertical, secvențial, de sus în jos**:
+1. **Secțiunea 1: Date Tehnice (Antet)** - Unitatea școlară, disciplina, clasa, profesorul și avizele conducerii (director, responsabil comisie).
+2. **Secțiunea 2: Încărcare Fișiere** - Poți încărca multiple PDF-uri, fișiere Word sau imagini pentru șablon, programă și manual fără să fie nevoie de merge.
+3. **Secțiunea 3: Tipologie & Generare** - Alege tipul documentului și apasă pe butonul mare teal **„GENEREAZĂ PLANIFICAREA ACUM”**.
+4. **Secțiunea 4: Documentul Generat** - Vizualizează, copiază, printează PDF sau descarcă în format DOCX.`,
       timestamp: new Date().toLocaleTimeString("ro-RO", { hour: "2-digit", minute: "2-digit" }),
     },
   ]);
 
-  const hasSablon = Boolean(sablonFile || (sablonText && sablonText.trim().length > 0));
-  const hasPrograma = Boolean(programaFile || (programaText && programaText.trim().length > 0));
-  const hasSuport = Boolean(suportFile || (suportText && suportText.trim().length > 0));
-
   const handleSelectStandardTemplate = (templateId: string) => {
     const tmpl = STANDARD_TEMPLATES.find((t) => t.id === templateId) || STANDARD_TEMPLATES[0];
     setSelectedTemplateId(tmpl.id);
-    setSablonFile(null);
     setSablonText(tmpl.content);
     setTipDocument(tmpl.category);
 
     const confirmationMsg: ChatMessage = {
       id: `tmpl-${Date.now()}`,
       role: "assistant",
-      content: `Am atașat șablonul oficial: **${tmpl.title}**. Capul de tabel va fi replicat cu strictețe în format Markdown.`,
+      content: `Am atașat șablonul standard oficial MEC: **${tmpl.title}**. Capul de tabel va fi respectat cu strictețe în format Markdown A4.`,
       timestamp: new Date().toLocaleTimeString("ro-RO", { hour: "2-digit", minute: "2-digit" }),
     };
     setMessages((prev) => [...prev, confirmationMsg]);
@@ -96,7 +90,6 @@ Apasă pe **„Încarcă Exemplu Demo”** din colțul de sus pentru a testa ins
     setTipDocument(sample.tipDocument);
     setDisciplina(sample.disciplina);
 
-    // Update headerData for the chosen sample
     setHeaderData({
       unitateInvatamant:
         sample.id === "engleza-9"
@@ -128,13 +121,13 @@ Apasă pe **„Încarcă Exemplu Demo”** din colțul de sus pentru a testa ins
       isComplete: true,
     });
 
-    setProgramaFile(null);
+    setProgramaFiles([]);
     setProgramaText(sample.programaSnippet);
 
-    setSuportFile(null);
+    setSuportFiles([]);
     setSuportText(sample.suportSnippet);
 
-    setSablonFile(null);
+    setSablonFiles([]);
     setSablonText(sample.sablonSnippet);
     setSelectedTemplateId(
       sample.tipDocument === "Schiță de lecție"
@@ -147,21 +140,7 @@ Apasă pe **„Încarcă Exemplu Demo”** din colțul de sus pentru a testa ins
     const sampleMsg: ChatMessage = {
       id: `sample-${Date.now()}`,
       role: "assistant",
-      content: `Am încărcat pachetul didactic complet pentru **${sample.name}** (${sample.clasa}, ${sample.oreSaptamana} ore/săptămână).
-
-Toate cele 3 surse obligatorii sunt configurate:
-- **Șablon**: ${
-        sample.tipDocument === "Schiță de lecție"
-          ? "Model Oficial Proiect de Lecție (6 Secțiuni & 8 Coloane)"
-          : sample.tipDocument === "Planificare pe unitate"
-          ? "Model Oficial Planificare pe Unități (7 Coloane & Semnături)"
-          : "Model Oficial MEC / ISJ (Planificare Anuală 2026-2027)"
-      }
-- **Programă**: Competențe generale și specifice
-- **Suport de curs**: Cuprins manual tematic
-- **Antet Oficial**: Coordonate tehnice complete
-
-Apasă pe butonul de generare din previzualizare pentru a redacta documentul!`,
+      content: `Am încărcat datele demonstrative complete pentru **${sample.name}** (${sample.clasa}, ${sample.oreSaptamana} ore/săptămână). Toate câmpurile și fișierele sunt configurate. Apasă pe butonul **„GENEREAZĂ PLANIFICAREA ACUM”** de mai jos!`,
       timestamp: new Date().toLocaleTimeString("ro-RO", { hour: "2-digit", minute: "2-digit" }),
     };
     setMessages((prev) => [...prev, sampleMsg]);
@@ -176,35 +155,6 @@ Apasă pe butonul de generare din previzualizare pentru a redacta documentul!`,
     };
 
     setMessages((prev) => [...prev, userMsg]);
-
-    // Polite check if essential inputs are missing
-    if (!hasSablon) {
-      setTimeout(() => {
-        const politeAssistantMsg: ChatMessage = {
-          id: `ast-missing-sablon-${Date.now()}`,
-          role: "assistant",
-          content: `Pentru a-ți genera documentul corect, te rog să încarci și șablonul pe care dorești să-l folosesc.\n\nPoți alege cu 1 click „Atașează Șablon Standard MEC” din Cardul 3 (Fișiere) sau poți încărca propriul fișier.`,
-          timestamp: new Date().toLocaleTimeString("ro-RO", { hour: "2-digit", minute: "2-digit" }),
-        };
-        setMessages((prev) => [...prev, politeAssistantMsg]);
-      }, 300);
-      return;
-    }
-
-    if (!hasPrograma && !hasSuport) {
-      setTimeout(() => {
-        const politeAssistantMsg: ChatMessage = {
-          id: `ast-missing-both-${Date.now()}`,
-          role: "assistant",
-          content: `Pentru a realiza o planificare fidelă conținutului tău, am nevoie și de Programa școlară și de Suportul de curs (manualul). Te rog să le încarci în Cardul 3 din stânga, sau apasă pe **„Încarcă Exemplu Demo”** din colțul de sus.`,
-          timestamp: new Date().toLocaleTimeString("ro-RO", { hour: "2-digit", minute: "2-digit" }),
-        };
-        setMessages((prev) => [...prev, politeAssistantMsg]);
-      }, 300);
-      return;
-    }
-
-    // Call server endpoint
     setIsLoading(true);
 
     try {
@@ -220,12 +170,12 @@ Apasă pe butonul de generare din previzualizare pentru a redacta documentul!`,
           clasa,
           oreSaptamana,
           tipDocument,
-          disciplina,
+          disciplina: disciplina || headerData.disciplina,
           headerData,
-          programaFile,
-          suportFile,
-          sablonFile,
-          sablonText,
+          sablonFiles,
+          programaFiles,
+          suportFiles,
+          sablonText: sablonText || (selectedTemplateId ? STANDARD_TEMPLATES.find((t) => t.id === selectedTemplateId)?.content : ""),
           programaText,
           suportText,
         }),
@@ -247,7 +197,7 @@ Apasă pe butonul de generare din previzualizare pentru a redacta documentul!`,
           role: "assistant",
           content:
             data.error ||
-            "A intervenit o dificultate temporară la redactarea documentului. Te rog să reîncerci.",
+            "A intervenit o eroare la generare. Te rugăm să reîncerci.",
           timestamp: new Date().toLocaleTimeString("ro-RO", { hour: "2-digit", minute: "2-digit" }),
         };
         setMessages((prev) => [...prev, errorMsg]);
@@ -258,13 +208,26 @@ Apasă pe butonul de generare din previzualizare pentru a redacta documentul!`,
         id: `ast-err-${Date.now()}`,
         role: "assistant",
         content:
-          "A apărut o problemă de conexiune la serverul metodic. Te rog să verifici conexiunea și să încerci din nou.",
+          "A apărut o problemă de conexiune cu serverul. Te rugăm să verifici și să reîncerci.",
         timestamp: new Date().toLocaleTimeString("ro-RO", { hour: "2-digit", minute: "2-digit" }),
       };
       setMessages((prev) => [...prev, errorMsg]);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleGenerateClick = () => {
+    // Scroll smoothly to Section 4
+    setTimeout(() => {
+      const el = document.getElementById("section-document-generat");
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }, 100);
+
+    const promptText = `Te rog să generezi ${tipDocument.toLowerCase()} integrală pentru ${clasa}, disciplina ${disciplina || headerData.disciplina}, cu norma de ${oreSaptamana} ${oreSaptamana === 1 ? "oră" : "ore"} pe săptămână, conform calendarului oficial 2026-2027. Include antetul tehnic complet pe două coloane, viza directorului, avizul responsabilului de catedră și tabelul didactic complet de la prima până la ultima săptămână.`;
+    handleSendMessage(promptText);
   };
 
   return (
@@ -274,75 +237,78 @@ Apasă pe butonul de generare din previzualizare pentru a redacta documentul!`,
         onLoadSample={() => handleLoadSampleData(0)}
       />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-5 flex flex-col space-y-4">
-        {/* Hours Calculator Live Banner */}
+      <main className="flex-1 max-w-6xl w-full mx-auto p-3 sm:p-6 space-y-6">
+        {/* Widget Calcul Orar Live (Informativ) */}
         <HoursCalculatorWidget clasa={clasa} oreSaptamana={oreSaptamana} />
 
-        {/* Core Asymmetric Layout: 40% Left ("Atelierul de Configurare") / 60% Right ("Sala de Previzualizare") */}
-        <div className="flex flex-col lg:flex-row gap-5 items-start flex-1 w-full">
-          {/* 1. COLOANA STÂNGĂ (40% din lățime) - "Atelierul de Configurare" */}
-          <div className="w-full lg:w-[40%] shrink-0">
-            <ConfigurationWorkshop
-              clasa={clasa}
-              setClasa={setClasa}
-              oreSaptamana={oreSaptamana}
-              setOreSaptamana={setOreSaptamana}
-              tipDocument={tipDocument}
-              setTipDocument={setTipDocument}
-              disciplina={disciplina}
-              setDisciplina={setDisciplina}
-              headerData={headerData}
-              setHeaderData={setHeaderData}
-              programaFile={programaFile}
-              setProgramaFile={setProgramaFile}
-              programaText={programaText}
-              setProgramaText={setProgramaText}
-              suportFile={suportFile}
-              setSuportFile={setSuportFile}
-              suportText={suportText}
-              setSuportText={setSuportText}
-              sablonFile={sablonFile}
-              setSablonFile={setSablonFile}
-              sablonText={sablonText}
-              setSablonText={setSablonText}
-              selectedTemplateId={selectedTemplateId}
-              setSelectedTemplateId={setSelectedTemplateId}
-            />
-          </div>
+        {/* SECȚIUNEA 1: DATE TEHNICE & ANTET OFICIAL */}
+        <TechnicalHeaderSection
+          clasa={clasa}
+          setClasa={setClasa}
+          oreSaptamana={oreSaptamana}
+          setOreSaptamana={setOreSaptamana}
+          disciplina={disciplina}
+          setDisciplina={setDisciplina}
+          headerData={headerData}
+          setHeaderData={setHeaderData}
+        />
 
-          {/* 2. COLOANA DREAPTĂ (60% din lățime) - "Sala de Previzualizare" */}
-          <div className="w-full lg:w-[60%] flex flex-col flex-1 h-full min-h-[640px]">
-            <PreviewHall
-              messages={messages}
-              onSendMessage={handleSendMessage}
-              isLoading={isLoading}
-              clasa={clasa}
-              oreSaptamana={oreSaptamana}
-              tipDocument={tipDocument}
-              headerData={headerData}
-              hasSablon={hasSablon}
-              hasPrograma={hasPrograma}
-              hasSuport={hasSuport}
-              onSelectStandardTemplate={handleSelectStandardTemplate}
-              onLoadSampleData={() => handleLoadSampleData(0)}
-            />
-          </div>
-        </div>
+        {/* SECȚIUNEA 2: ÎNCĂRCARE FIȘIERE DIDACTICE (MULTIPLE FIȘIERE) */}
+        <FileUploadSection
+          sablonFiles={sablonFiles}
+          setSablonFiles={setSablonFiles}
+          sablonText={sablonText}
+          setSablonText={setSablonText}
+          programaFiles={programaFiles}
+          setProgramaFiles={setProgramaFiles}
+          programaText={programaText}
+          setProgramaText={setProgramaText}
+          suportFiles={suportFiles}
+          setSuportFiles={setSuportFiles}
+          suportText={suportText}
+          setSuportText={setSuportText}
+          selectedTemplateId={selectedTemplateId}
+          onSelectStandardTemplate={handleSelectStandardTemplate}
+        />
+
+        {/* SECȚIUNEA 3: TIPOLOGIE DIDACTICĂ & MARELE BUTON DE GENERARE */}
+        <TypologyAndGenerateSection
+          tipDocument={tipDocument}
+          setTipDocument={setTipDocument}
+          clasa={clasa}
+          oreSaptamana={oreSaptamana}
+          isLoading={isLoading}
+          onGenerate={handleGenerateClick}
+          onLoadSampleData={() => handleLoadSampleData(0)}
+        />
+
+        {/* SECȚIUNEA 4: DOCUMENTUL DIDACTIC GENERAT & EXPORT */}
+        <PreviewHall
+          messages={messages}
+          onSendMessage={handleSendMessage}
+          isLoading={isLoading}
+          clasa={clasa}
+          oreSaptamana={oreSaptamana}
+          tipDocument={tipDocument}
+          headerData={headerData}
+          onGenerate={handleGenerateClick}
+          onLoadSampleData={() => handleLoadSampleData(0)}
+        />
       </main>
 
       {/* Footer Oficial EduMetodist */}
-      <footer className="mt-8 border-t border-[#E2E8F0] bg-white py-4 px-4 sm:px-6 text-center text-xs text-slate-500">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2.5">
+      <footer className="mt-10 border-t border-[#E2E8F0] bg-white py-5 px-4 sm:px-6 text-center text-xs text-slate-500">
+        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex items-center space-x-2">
-            <span className="font-semibold text-[#1E293B]">EduMetodist România</span>
+            <span className="font-bold text-[#1E293B]">EduMetodist România</span>
             <span className="text-slate-300">•</span>
             <span>Anul Școlar 2026-2027</span>
           </div>
           <div className="text-slate-600 font-medium">
-            Concept metodic & dezvoltare: <span className="text-[#0D9488] font-bold">by profesor Adrian Podar</span>
+            Concept metodic & dezvoltare: <span className="text-[#0D9488] font-bold">autor prof. Adrian Podar</span>
           </div>
           <div className="text-[11px] text-slate-400">
-            Conform standardelor MEC & Structura pe 5 Module
+            Conform standardelor oficiale MEC & Structura pe 5 Module
           </div>
         </div>
       </footer>

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef } from "react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import {
@@ -9,11 +9,9 @@ import {
   Send,
   Sparkles,
   FileText,
-  MessageSquare,
   FileSpreadsheet,
-  Calendar,
-  AlertCircle,
   ArrowRight,
+  Loader2,
 } from "lucide-react";
 import { ChatMessage, DocumentType, TechnicalHeaderData } from "../types";
 import { copyTableToClipboard, exportWordDocument } from "../utils/fileHelpers";
@@ -26,10 +24,7 @@ interface PreviewHallProps {
   oreSaptamana: number;
   tipDocument: DocumentType;
   headerData: TechnicalHeaderData;
-  hasSablon: boolean;
-  hasPrograma: boolean;
-  hasSuport: boolean;
-  onSelectStandardTemplate: (id: string) => void;
+  onGenerate: () => void;
   onLoadSampleData: () => void;
 }
 
@@ -41,17 +36,11 @@ export const PreviewHall: React.FC<PreviewHallProps> = ({
   oreSaptamana,
   tipDocument,
   headerData,
-  hasSablon,
-  hasPrograma,
-  hasSuport,
-  onSelectStandardTemplate,
-  onLoadSampleData,
+  onGenerate,
 }) => {
   const [inputText, setInputText] = useState("");
   const [copiedText, setCopiedText] = useState(false);
-  const [activeTab, setActiveTab] = useState<"document" | "chat">("document");
   const previewContainerRef = useRef<HTMLDivElement>(null);
-  const chatBottomRef = useRef<HTMLDivElement>(null);
 
   // Check for multi-part modular annual plan (M1-M2 and M3-M5)
   const assistantMessagesWithTables = messages.filter(
@@ -64,7 +53,10 @@ export const PreviewHall: React.FC<PreviewHallProps> = ({
       /modul(ul)?\s*1/i.test(m.content) && /modul(ul)?\s*2/i.test(m.content)
     );
     const m3m5Msg = assistantMessagesWithTables.find((m) =>
-      m !== m1m2Msg && (/modul(ul)?\s*3/i.test(m.content) || /modul(ul)?\s*4/i.test(m.content) || /modul(ul)?\s*5/i.test(m.content))
+      m !== m1m2Msg &&
+      (/modul(ul)?\s*3/i.test(m.content) ||
+        /modul(ul)?\s*4/i.test(m.content) ||
+        /modul(ul)?\s*5/i.test(m.content))
     );
 
     if (m1m2Msg && m3m5Msg) {
@@ -99,14 +91,8 @@ export const PreviewHall: React.FC<PreviewHallProps> = ({
     /modul(ul)?\s*2/i.test(lastAssistantMessage.content) &&
     !/modul(ul)?\s*5/i.test(lastAssistantMessage.content) &&
     (/continu[aă]\s+cu\s+m3-m5/i.test(lastAssistantMessage.content) ||
-     lastAssistantMessage.content.includes("💡 Am generat Modulele 1 și 2"))
+      lastAssistantMessage.content.includes("💡 Am generat Modulele 1 și 2"))
   );
-
-  useEffect(() => {
-    if (activeTab === "chat") {
-      chatBottomRef.current?.scrollIntoView({ behavior: "smooth" });
-    }
-  }, [messages, activeTab, isLoading]);
 
   const handleCopyText = () => {
     const contentToCopy = documentContent || generateInitialDraft();
@@ -117,39 +103,8 @@ export const PreviewHall: React.FC<PreviewHallProps> = ({
   };
 
   const handlePrintPdf = () => {
-    const contentHtml = document.getElementById("plan-table-content")?.innerHTML;
-    const printWindow = window.open("", "_blank");
-    if (!printWindow) return;
-
-    printWindow.document.write(`
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>${tipDocument} - ${headerData.disciplina || "EduMetodist"} ${headerData.clasa}</title>
-          <style>
-            body { font-family: 'Times New Roman', Cambria, Georgia, serif; font-size: 11pt; margin: 15mm; color: #1E293B; line-height: 1.4; }
-            h1, h2, h3 { margin: 12px 0 6px 0; color: #000; text-align: center; }
-            p { margin: 4px 0; }
-            ul, ol { margin: 4px 0 10px 20px; }
-            li { margin-bottom: 3px; }
-            table { width: 100%; border-collapse: collapse; margin-top: 14px; margin-bottom: 14px; font-size: 9.5pt; }
-            th, td { border: 1px solid #1E293B; padding: 6px 8px; vertical-align: top; }
-            th { background-color: #f1f5f9; font-weight: bold; text-align: left; }
-            @page { size: landscape; margin: 12mm; }
-          </style>
-        </head>
-        <body>
-          <div>${contentHtml || ""}</div>
-          <div style="text-align: right; font-size: 8.5pt; color: #64748b; margin-top: 24px; border-top: 1px solid #cbd5e1; padding-top: 6px; font-family: sans-serif;">
-            EduMetodist România (2026-2027) • Proiectat by profesor Adrian Podar
-          </div>
-          <script>
-            window.onload = function() { window.print(); }
-          </script>
-        </body>
-      </html>
-    `);
-    printWindow.document.close();
+    // Uses the strict print CSS directly, bypassing iframe window.open restrictions
+    window.print();
   };
 
   const handleDownloadDocx = () => {
@@ -167,14 +122,6 @@ export const PreviewHall: React.FC<PreviewHallProps> = ({
     if (!inputText.trim() || isLoading) return;
     onSendMessage(inputText.trim());
     setInputText("");
-    setActiveTab("document");
-  };
-
-  const handleQuickGenerate = () => {
-    const prompt = `Te rog să generezi ${tipDocument.toLowerCase()} pentru ${clasa}, având alocate ${oreSaptamana} ${
-      oreSaptamana === 1 ? "oră" : "ore"
-    } pe săptămână, conform structurii anului școlar 2026-2027 și cu antetul tehnic configurat.`;
-    onSendMessage(prompt);
   };
 
   const generateInitialDraft = () => {
@@ -209,60 +156,52 @@ export const PreviewHall: React.FC<PreviewHallProps> = ({
   };
 
   return (
-    <div className="bg-white rounded-xl border border-[#E2E8F0] shadow-[0_1px_3px_rgba(0,0,0,0.02)] flex flex-col h-full overflow-hidden transition-all duration-200">
-      {/* 1. BARA SUPERIOARĂ (TOP BAR) */}
-      <div className="p-3 sm:p-4 border-b border-[#E2E8F0] bg-white flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div className="flex items-center space-x-2.5">
-          <div className="flex items-center space-x-1 bg-[#F8FAF9] p-1 rounded-lg border border-[#E2E8F0]">
-            <button
-              type="button"
-              onClick={() => setActiveTab("document")}
-              className={`px-3 py-1.5 rounded-md text-xs font-semibold flex items-center space-x-1.5 transition-all duration-150 cursor-pointer ${
-                activeTab === "document"
-                  ? "bg-white text-[#0D9488] shadow-2xs border border-[#E2E8F0]"
-                  : "text-slate-600 hover:text-[#1E293B]"
-              }`}
-            >
-              <FileSpreadsheet className="w-3.5 h-3.5" />
-              <span>Document A4</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab("chat")}
-              className={`px-3 py-1.5 rounded-md text-xs font-semibold flex items-center space-x-1.5 transition-all duration-150 cursor-pointer ${
-                activeTab === "chat"
-                  ? "bg-white text-[#0D9488] shadow-2xs border border-[#E2E8F0]"
-                  : "text-slate-600 hover:text-[#1E293B]"
-              }`}
-            >
-              <MessageSquare className="w-3.5 h-3.5" />
-              <span>Istoric Modificări ({messages.length})</span>
-            </button>
+    <section
+      id="section-document-generat"
+      className="card-lift bg-white rounded-2xl border border-[#E2E8F0] shadow-[0_2px_8px_rgba(0,0,0,0.03)] flex flex-col overflow-hidden"
+    >
+      {/* 1. BARA SUPERIOARĂ CURĂȚATĂ - DOAR CELE 3 BUTOANE STRICT NECESARE */}
+      <div
+        id="document-actions-bar"
+        className="p-4 sm:p-5 border-b border-[#E2E8F0] bg-white flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
+      >
+        <div className="flex items-center space-x-3">
+          <div className="w-10 h-10 rounded-xl bg-[#F0FDFA] border border-[#CCFBF1] flex items-center justify-center text-[#0D9488] shrink-0">
+            <FileSpreadsheet className="w-5 h-5" />
           </div>
-
-          <span className="hidden xl:inline-flex items-center text-[11px] font-medium text-slate-500 bg-slate-50 px-2 py-1 rounded-md border border-[#E2E8F0]">
-            Format A4 Landscape
-          </span>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#0D9488] bg-[#F0FDFA] px-2 py-0.5 rounded-md border border-[#CCFBF1]">
+                Pasul 4
+              </span>
+              <h2 className="text-base sm:text-lg font-bold text-[#1E293B]">
+                Documentul Didactic Generat
+              </h2>
+            </div>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Previzualizare A4 Landscape • Format oficial conform normelor MEC • autor prof. Adrian Podar
+            </p>
+          </div>
         </div>
 
-        {/* 3 Butoane secundare (outline) aliniate la dreapta */}
+        {/* CELE 3 BUTOANE STRICT NECESARE (Copiază Text, Printează PDF, Descarcă DOCX) */}
         <div className="flex items-center space-x-2 self-end sm:self-auto">
           {/* Buton 1: Copiază Text */}
           <button
             type="button"
             onClick={handleCopyText}
             id="btn-copy-word"
-            className="btn-interaction px-2.5 sm:px-3 py-1.5 border border-[#E2E8F0] hover:border-[#0D9488] hover:text-[#0D9488] bg-white text-xs font-medium text-slate-700 rounded-lg flex items-center space-x-1.5 shadow-xs cursor-pointer"
+            className="btn-interaction px-3.5 py-2 border border-[#E2E8F0] hover:border-[#0D9488] hover:text-[#0D9488] bg-white text-xs font-semibold text-slate-700 rounded-xl flex items-center space-x-1.5 shadow-2xs cursor-pointer"
             title="Copiază documentul și tabelul pentru lipire directă în Word sau Excel"
           >
             {copiedText ? (
               <>
-                <Check className="w-3.5 h-3.5 text-emerald-600" />
-                <span className="text-emerald-700 font-semibold">Copiat!</span>
+                <Check className="w-4 h-4 text-emerald-600" />
+                <span className="text-emerald-700 font-bold">Copiat!</span>
               </>
             ) : (
               <>
-                <Copy className="w-3.5 h-3.5 text-slate-500" />
+                <Copy className="w-4 h-4 text-slate-500" />
                 <span>Copiază Text</span>
               </>
             )}
@@ -272,10 +211,11 @@ export const PreviewHall: React.FC<PreviewHallProps> = ({
           <button
             type="button"
             onClick={handlePrintPdf}
-            className="btn-interaction px-2.5 sm:px-3 py-1.5 border border-[#E2E8F0] hover:border-[#0D9488] hover:text-[#0D9488] bg-white text-xs font-medium text-slate-700 rounded-lg flex items-center space-x-1.5 shadow-xs cursor-pointer"
-            title="Tipărește sau salvează ca PDF în format Landscape"
+            id="btn-print-pdf"
+            className="btn-interaction px-3.5 py-2 border border-[#E2E8F0] hover:border-[#0D9488] hover:text-[#0D9488] bg-white text-xs font-semibold text-slate-700 rounded-xl flex items-center space-x-1.5 shadow-2xs cursor-pointer"
+            title="Tipărește direct sau salvează ca PDF în format Landscape"
           >
-            <Printer className="w-3.5 h-3.5 text-slate-500" />
+            <Printer className="w-4 h-4 text-slate-500" />
             <span>Printează PDF</span>
           </button>
 
@@ -283,290 +223,199 @@ export const PreviewHall: React.FC<PreviewHallProps> = ({
           <button
             type="button"
             onClick={handleDownloadDocx}
-            className="btn-interaction px-2.5 sm:px-3 py-1.5 border border-[#E2E8F0] hover:border-[#0D9488] hover:text-[#0D9488] bg-white text-xs font-medium text-slate-700 rounded-lg flex items-center space-x-1.5 shadow-xs cursor-pointer"
+            id="btn-download-docx"
+            className="btn-interaction px-3.5 py-2 bg-[#0D9488] hover:bg-[#0F766E] text-white text-xs font-bold rounded-xl flex items-center space-x-1.5 shadow-xs cursor-pointer"
             title="Descarcă documentul compatibil cu Microsoft Word"
           >
-            <Download className="w-3.5 h-3.5 text-slate-500" />
+            <Download className="w-4 h-4 text-white" />
             <span>Descarcă .DOCX</span>
           </button>
         </div>
       </div>
 
       {/* 2. ZONA CENTRALĂ DE PREVIZUALIZARE (A4 LANDSCAPE SIMULATION) */}
-      <div className="flex-1 p-3 sm:p-5 overflow-y-auto bg-[#F8FAF9]">
-        {activeTab === "document" ? (
-          <div
-            ref={previewContainerRef}
-            className="w-full max-w-5xl mx-auto bg-white rounded-xl border border-[#E2E8F0] p-6 sm:p-8 shadow-[0_1px_4px_rgba(0,0,0,0.03)] min-h-[560px] font-academic text-[#1E293B]"
-          >
-            {isLoading ? (
-              <div className="py-20 flex flex-col items-center justify-center space-y-4 text-center animate-appear-smooth">
-                <div className="w-12 h-12 rounded-xl bg-[#F0FDFA] border border-[#CCFBF1] flex items-center justify-center text-[#0D9488] animate-pulse">
-                  <Sparkles className="w-6 h-6 animate-spin" />
-                </div>
-                <div>
-                  <h3 className="text-base font-bold text-[#1E293B]">
-                    Metodistul elaborează documentul didactic...
-                  </h3>
-                  <p className="text-xs text-slate-500 mt-1 max-w-md mx-auto">
-                    Se distribuie conținuturile pe cele 5 module conform calendarului oficial 2026-2027, respectând capul de tabel și antetul permanent.
-                  </p>
-                </div>
+      <div id="document-print-zone" className="p-4 sm:p-7 bg-[#F8FAF9] overflow-x-auto">
+        <div
+          ref={previewContainerRef}
+          className="w-full max-w-5xl mx-auto bg-white rounded-xl border border-[#E2E8F0] p-6 sm:p-10 shadow-[0_1px_4px_rgba(0,0,0,0.03)] min-h-[520px] font-academic text-[#1E293B]"
+        >
+          {isLoading ? (
+            <div className="py-24 flex flex-col items-center justify-center space-y-4 text-center animate-appear-smooth">
+              <div className="w-14 h-14 rounded-2xl bg-[#F0FDFA] border border-[#CCFBF1] flex items-center justify-center text-[#0D9488]">
+                <Loader2 className="w-7 h-7 animate-spin" />
               </div>
-            ) : documentContent ? (
-              <div id="plan-table-content" className="space-y-4 animate-appear-smooth">
-                <div className="markdown-body font-academic text-xs sm:text-sm leading-relaxed">
-                  <Markdown remarkPlugins={[remarkGfm]}>{documentContent}</Markdown>
-                </div>
+              <div className="space-y-1">
+                <h3 className="text-base font-bold text-[#1E293B]">
+                  Metodistul elaborează documentul didactic complet...
+                </h3>
+                <p className="text-xs text-slate-500 max-w-md mx-auto">
+                  Se distribuie conținuturile pe toate cele 5 module conform calendarului oficial 2026-2027, calculând riguros orele și generând capul de tabel normat.
+                </p>
+              </div>
+            </div>
+          ) : documentContent ? (
+            <div id="plan-table-content" className="space-y-4 animate-appear-smooth">
+              <div className="markdown-body font-academic text-xs sm:text-sm leading-relaxed overflow-x-auto">
+                <Markdown remarkPlugins={[remarkGfm]}>{documentContent}</Markdown>
+              </div>
 
-                {/* Buton acțiune modulară pentru finalizarea planificării cu M3-M5 */}
-                {showContinueM3M5 && (
-                  <div className="card-lift my-6 p-4 bg-[#F0FDFA] border border-[#0D9488]/30 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xs">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-9 h-9 rounded-lg bg-[#0D9488] text-white flex items-center justify-center shrink-0">
-                        <ArrowRight className="w-5 h-5" />
-                      </div>
-                      <div>
-                        <p className="text-xs font-bold text-slate-800">
-                          Modulele 1 și 2 au fost generate cu succes.
-                        </p>
-                        <p className="text-[11px] text-slate-600">
-                          Finalizează planificarea anuală cu Modulele 3, 4 și 5 conform calendarului școlar 2026-2027.
-                        </p>
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => onSendMessage("Continuă cu M3-M5")}
-                      disabled={isLoading}
-                      className="btn-interaction px-4 py-2 bg-[#0D9488] hover:bg-[#0F766E] text-white text-xs font-bold rounded-lg shadow-xs flex items-center space-x-2 shrink-0 cursor-pointer"
-                    >
-                      <span>Continuă cu M3-M5</span>
-                      <ArrowRight className="w-4 h-4" />
-                    </button>
-                  </div>
-                )}
-
-                {/* Card Export conform Regulii 5 din instrucțiunile finale v.5.0 */}
-                <div className="card-lift mt-8 pt-6 border-t border-[#E2E8F0] bg-[#F8FAF9] -mx-6 sm:-mx-8 -mb-6 sm:-mb-8 p-6 rounded-b-xl flex flex-col sm:flex-row items-center justify-between gap-4">
+              {/* Buton acțiune modulară pentru finalizarea planificării cu M3-M5 dacă a fost generată parțial */}
+              {showContinueM3M5 && (
+                <div className="no-print my-6 p-4 bg-[#F0FDFA] border border-[#0D9488]/30 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xs">
                   <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 flex items-center justify-center shrink-0">
-                      <FileText className="w-5 h-5" />
+                    <div className="w-9 h-9 rounded-lg bg-[#0D9488] text-white flex items-center justify-center shrink-0">
+                      <ArrowRight className="w-5 h-5" />
                     </div>
                     <div>
-                      <h4 className="text-xs font-bold text-slate-800 flex items-center gap-1.5 flex-wrap">
-                        <span>Fișierul este pregătit pentru descărcare</span>
-                        <span className="text-[10px] text-[#0D9488] font-semibold bg-[#F0FDFA] px-1.5 py-0.5 rounded border border-[#CCFBF1]">
-                          by profesor Adrian Podar
-                        </span>
-                      </h4>
-                      <p className="text-[11px] text-slate-500">
-                        Format A4 Landscape cu margini standard conform normelor metodice
+                      <p className="text-xs font-bold text-slate-800">
+                        Modulele 1 și 2 au fost generate cu succes.
+                      </p>
+                      <p className="text-[11px] text-slate-600">
+                        Apasă pentru a asambla restul modulelor (3, 4 și 5) într-un document unitar.
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-2.5 w-full sm:w-auto">
-                    <button
-                      type="button"
-                      onClick={handleDownloadDocx}
-                      className="btn-interaction flex-1 sm:flex-none px-3.5 py-2 bg-white hover:bg-slate-50 border border-[#CBD5E1] hover:border-[#0D9488] text-[#1E293B] text-xs font-bold rounded-lg shadow-xs flex items-center justify-center space-x-1.5 cursor-pointer"
-                    >
-                      <Download className="w-4 h-4 text-[#0D9488]" />
-                      <span>Descarcă format .DOCX</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handlePrintPdf}
-                      className="btn-interaction flex-1 sm:flex-none px-3.5 py-2 bg-[#0D9488] hover:bg-[#0F766E] text-white text-xs font-bold rounded-lg shadow-xs flex items-center justify-center space-x-1.5 cursor-pointer"
-                    >
-                      <Printer className="w-4 h-4" />
-                      <span>Descarcă format .PDF</span>
-                    </button>
+                  <button
+                    type="button"
+                    onClick={() => onSendMessage("Continuă cu M3-M5")}
+                    disabled={isLoading}
+                    className="btn-interaction px-4 py-2 bg-[#0D9488] hover:bg-[#0F766E] text-white text-xs font-bold rounded-lg shadow-xs flex items-center space-x-2 shrink-0 cursor-pointer"
+                  >
+                    <span>Continuă cu M3-M5</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+
+              {/* Caseta de descărcare la final de document */}
+              <div className="no-print mt-8 pt-6 border-t border-[#E2E8F0] bg-[#F8FAF9] -mx-6 sm:-mx-10 -mb-6 sm:-mb-10 p-6 rounded-b-xl flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 flex items-center justify-center shrink-0">
+                    <FileText className="w-5 h-5" />
                   </div>
+                  <div>
+                    <h4 className="text-xs font-bold text-slate-800 flex items-center gap-1.5 flex-wrap">
+                      <span>Documentul este redactat și pregătit pentru descărcare</span>
+                      <span className="text-[10px] text-[#0D9488] font-semibold bg-[#F0FDFA] px-2 py-0.5 rounded border border-[#CCFBF1]">
+                        autor prof. Adrian Podar
+                      </span>
+                    </h4>
+                    <p className="text-[11px] text-slate-500">
+                      Format A4 Landscape cu margini standard conform normelor metodice
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2.5 w-full sm:w-auto">
+                  <button
+                    type="button"
+                    onClick={handleDownloadDocx}
+                    className="btn-interaction flex-1 sm:flex-none px-4 py-2 bg-white hover:bg-slate-50 border border-[#CBD5E1] hover:border-[#0D9488] text-[#1E293B] text-xs font-bold rounded-lg shadow-xs flex items-center justify-center space-x-1.5 cursor-pointer"
+                  >
+                    <Download className="w-4 h-4 text-[#0D9488]" />
+                    <span>Descarcă .DOCX</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handlePrintPdf}
+                    className="btn-interaction flex-1 sm:flex-none px-4 py-2 bg-[#0D9488] hover:bg-[#0F766E] text-white text-xs font-bold rounded-lg shadow-xs flex items-center justify-center space-x-1.5 cursor-pointer"
+                  >
+                    <Printer className="w-4 h-4" />
+                    <span>Printează PDF</span>
+                  </button>
                 </div>
               </div>
-            ) : (
-              /* Draft de primire când nu s-a generat încă documentul */
-              <div className="space-y-6 animate-appear-smooth">
-                {/* Antet Oficial pre-completat */}
-                <div className="border-b border-[#E2E8F0] pb-4 flex flex-col sm:flex-row justify-between text-xs sm:text-[13px] leading-relaxed">
-                  <div className="space-y-1">
-                    <p><strong>Unitatea de învățământ:</strong> {headerData.unitateInvatamant || "Colegiul Național „Mihai Viteazul”"}</p>
-                    <p><strong>Anul școlar:</strong> 2026-2027</p>
-                    <p><strong>Disciplina:</strong> {headerData.disciplina || "Limba și literatura română"}</p>
-                    <p><strong>Manual/Suport:</strong> {headerData.manualSuport || "Manual Ed. Art Klett"}</p>
-                    <p><strong>Clasa:</strong> {headerData.clasa || "Clasa a VII-a"}</p>
-                    <p><strong>Nr. ore pe săptămână:</strong> {headerData.nrOreSaptamana || `${oreSaptamana} ore/săpt.`}</p>
-                    <p><strong>Profesor:</strong> {headerData.profesor || "Prof. Ionescu Maria"}</p>
-                  </div>
-                  <div className="mt-3 sm:mt-0 text-left sm:text-right space-y-1">
-                    <p><strong>Avizat director:</strong> {headerData.director || "Prof. dr. Popescu Ion"}</p>
-                    <p><strong>Avizat resp. catedră:</strong> {headerData.respCatedra || "Prof. Georgescu Elena"}</p>
-                    <p><strong>Nr. înregistrare:</strong> {headerData.nrInregistrare || "......................."}</p>
-                    <p><strong>Vacanță februarie:</strong> {headerData.vacantaFebruarie || "Săptămâna 2 (22 - 28 Feb)"}</p>
-                  </div>
+            </div>
+          ) : (
+            /* Draft de așteptare înainte de generare */
+            <div className="space-y-6 animate-appear-smooth">
+              {/* Antet Oficial pre-completat permanent vizibil */}
+              <div className="border-b border-[#E2E8F0] pb-4 flex flex-col sm:flex-row justify-between text-xs sm:text-[13px] leading-relaxed">
+                <div className="space-y-1">
+                  <p><strong>Unitatea de învățământ:</strong> {headerData.unitateInvatamant || "Colegiul Național „Mihai Viteazul”"}</p>
+                  <p><strong>Anul școlar:</strong> 2026-2027</p>
+                  <p><strong>Disciplina:</strong> {headerData.disciplina || "Limba și literatura română"}</p>
+                  <p><strong>Manual/Suport:</strong> {headerData.manualSuport || "Manual Ed. Art Klett"}</p>
+                  <p><strong>Clasa:</strong> {headerData.clasa || clasa}</p>
+                  <p><strong>Nr. ore pe săptămână:</strong> {headerData.nrOreSaptamana || `${oreSaptamana} ore/săpt.`}</p>
+                  <p><strong>Profesor:</strong> {headerData.profesor || "Prof. Adrian Podar"}</p>
                 </div>
+                <div className="mt-3 sm:mt-0 text-left sm:text-right space-y-1">
+                  <p><strong>Avizat director:</strong> {headerData.director || "Prof. dr. Popescu Ion"}</p>
+                  <p><strong>Avizat responsabil catedră:</strong> {headerData.respCatedra || "Prof. Georgescu Elena"}</p>
+                  <p><strong>Nr. înregistrare:</strong> {headerData.nrInregistrare || "......................."}</p>
+                  <p><strong>Vacanță februarie:</strong> {headerData.vacantaFebruarie || "Săptămâna 2 (22 - 28 Februarie 2027)"}</p>
+                </div>
+              </div>
 
-                {/* Titlu document */}
-                <div className="text-center py-2">
-                  <h2 className="text-sm sm:text-base font-bold text-[#1E293B] uppercase tracking-wide">
-                    {tipDocument === "Planificare anuală"
-                      ? "PLANIFICARE ANUALĂ - ANUL ȘCOLAR 2026-2027"
-                      : tipDocument === "Planificare pe unitate"
-                      ? "PLANIFICARE PE UNITĂȚI DE ÎNVĂȚARE - ANUL ȘCOLAR 2026-2027"
-                      : "PROIECT DE LECȚIE"}
-                  </h2>
-                  <p className="text-xs text-slate-500 font-sans mt-1">
-                    Simulare A4 Landscape • Standard Curricular Oficial • by profesor Adrian Podar
+              {/* Titlu document */}
+              <div className="text-center py-2">
+                <h2 className="text-sm sm:text-base font-bold text-[#1E293B] uppercase tracking-wide">
+                  {tipDocument === "Planificare anuală"
+                    ? "PLANIFICARE ANUALĂ - ANUL ȘCOLAR 2026-2027"
+                    : tipDocument === "Planificare pe unitate"
+                    ? "PLANIFICARE PE UNITĂȚI DE ÎNVĂȚARE - ANUL ȘCOLAR 2026-2027"
+                    : "PROIECT DE LECȚIE"}
+                </h2>
+                <p className="text-xs text-slate-500 font-sans mt-1">
+                  Simulare A4 Landscape • Standard Curricular Oficial • autor prof. Adrian Podar
+                </p>
+              </div>
+
+              {/* Zonă de îndrumare prietenoasă */}
+              <div className="p-8 bg-[#F8FAF9] rounded-2xl border border-dashed border-[#CBD5E1] text-center font-sans space-y-4">
+                <div className="max-w-md mx-auto space-y-2">
+                  <div className="w-12 h-12 rounded-2xl bg-[#F0FDFA] border border-[#CCFBF1] text-[#0D9488] mx-auto flex items-center justify-center">
+                    <Sparkles className="w-6 h-6" />
+                  </div>
+                  <h4 className="text-sm sm:text-base font-bold text-[#1E293B]">
+                    Documentul didactic este pregătit pentru generare
+                  </h4>
+                  <p className="text-xs text-slate-600 leading-relaxed">
+                    Datele tale administrative sunt configurate. Apasă pe butonul mare solid teal de mai sus:
+                    <br />
+                    <strong className="text-[#0D9488]">„GENEREAZĂ {tipDocument.toUpperCase()} ACUM”</strong>
+                    <br />
+                    pentru a crea automat tabelul complet cu toate modulele și coloanele oficiale.
                   </p>
                 </div>
 
-                {/* Zona de ghidare / acțiune */}
-                <div className="card-lift p-6 bg-[#F8FAF9] rounded-xl border border-dashed border-[#CBD5E1] text-center font-sans space-y-4">
-                  <div className="max-w-md mx-auto space-y-2">
-                    <div className="w-10 h-10 rounded-full bg-[#F0FDFA] border border-[#CCFBF1] text-[#0D9488] mx-auto flex items-center justify-center">
-                      <Sparkles className="w-5 h-5" />
-                    </div>
-                    <h4 className="text-sm font-bold text-[#1E293B]">
-                      Documentul este gata pentru redactare
-                    </h4>
-                    <p className="text-xs text-slate-600 leading-relaxed">
-                      Datele tale administrative sunt configurate. Apasă pe butonul de mai jos sau folosește caseta de dialog pentru a genera tabelul didactic complet.
-                    </p>
-                  </div>
-
-                  <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
-                    <button
-                      type="button"
-                      onClick={handleQuickGenerate}
-                      className="btn-interaction px-4 py-2 bg-[#0D9488] hover:bg-[#0F766E] text-white rounded-lg text-xs font-bold shadow-xs flex items-center space-x-2 cursor-pointer"
-                    >
-                      <Sparkles className="w-4 h-4" />
-                      <span>Generează {tipDocument} ({clasa})</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={onLoadSampleData}
-                      className="btn-interaction px-4 py-2 bg-white hover:bg-slate-100 border border-[#E2E8F0] text-slate-700 rounded-lg text-xs font-semibold shadow-xs cursor-pointer"
-                    >
-                      Încarcă Exemplu Demo Complet
-                    </button>
-                  </div>
-
-                  {(!hasSablon || !hasPrograma || !hasSuport) && (
-                    <div className="text-[11px] text-[#D97706] bg-amber-50 p-2.5 rounded-lg border border-amber-200 inline-flex items-center space-x-1.5">
-                      <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                      <span>
-                        Sfat: Asigură-te că ai atașat Șablonul, Programa și Suportul de curs în panoul din stânga pentru precizie maximă.
-                      </span>
-                    </div>
-                  )}
+                <div className="pt-2">
+                  <button
+                    type="button"
+                    onClick={onGenerate}
+                    className="btn-interaction px-5 py-2.5 bg-[#0D9488] hover:bg-[#0F766E] text-white rounded-xl text-xs font-bold shadow-xs inline-flex items-center space-x-2 cursor-pointer"
+                  >
+                    <Sparkles className="w-4 h-4" />
+                    <span>Generează Acum {tipDocument}</span>
+                  </button>
                 </div>
               </div>
-            )}
-          </div>
-        ) : (
-          /* Tab: Istoric Conversație */
-          <div className="w-full max-w-4xl mx-auto space-y-4 font-sans text-xs">
-            {messages.map((m) => (
-              <div
-                key={m.id}
-                className={`animate-appear-smooth p-4 rounded-xl border transition-all duration-150 ${
-                  m.role === "assistant"
-                    ? "bg-white border-[#E2E8F0] text-[#1E293B]"
-                    : "bg-[#0D9488] text-white border-[#0D9488] ml-auto max-w-lg"
-                }`}
-              >
-                <div className="flex items-center justify-between pb-2 mb-2 border-b border-inherit opacity-80 text-[11px]">
-                  <span className="font-semibold">
-                    {m.role === "assistant" ? "Asistent Metodist" : "Profesor"}
-                  </span>
-                  <span>{m.timestamp}</span>
-                </div>
-                <div className="whitespace-pre-wrap leading-relaxed">{m.content}</div>
-              </div>
-            ))}
-            <div ref={chatBottomRef} />
-          </div>
-        )}
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* 3. BARA INFERIOARĂ (CHAT CONTEXTUAL FIXAT) */}
-      <div className="p-3 sm:p-4 bg-white border-t border-[#E2E8F0] space-y-2">
-        <form onSubmit={handleChatSubmit} className="flex items-center space-x-2">
+      {/* 3. BARA INFERIOARĂ PENTRU AJUSTARE METODICĂ DISCRETĂ */}
+      <div id="chat-modificari" className="no-print p-3 sm:p-4 bg-white border-t border-[#E2E8F0]">
+        <form onSubmit={handleChatSubmit} className="flex items-center space-x-2.5 max-w-4xl mx-auto">
           <input
             type="text"
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
             disabled={isLoading}
-            placeholder={`Cere ajustări rapide (ex: „Adaugă 2 ore de recapitulare în Modulul 2”, „Modifică cerința O2”)...`}
-            className="flex-1 px-3.5 py-2.5 bg-[#F8FAF9] border border-[#E2E8F0] rounded-xl text-xs sm:text-sm text-[#1E293B] placeholder-slate-400 focus:outline-hidden focus:ring-2 focus:ring-[#0D9488]/30 focus:border-[#0D9488] focus:bg-white transition-all duration-150"
+            placeholder="Ai nevoie de ajustări? (ex: «Adaugă 2 ore de recapitulare în Modulul 2», «Schimbă tema din S14»...)"
+            className="flex-1 px-4 py-2.5 bg-[#F8FAF9] border border-[#E2E8F0] rounded-xl text-xs sm:text-sm text-[#1E293B] placeholder-slate-400 focus:outline-hidden focus:ring-2 focus:ring-[#0D9488]/30 focus:border-[#0D9488] focus:bg-white transition-all duration-150"
           />
           <button
             type="submit"
             disabled={!inputText.trim() || isLoading}
-            className="btn-interaction px-4 py-2.5 bg-[#0D9488] hover:bg-[#0F766E] disabled:opacity-40 text-white rounded-xl text-xs font-bold shadow-xs flex items-center space-x-1.5 cursor-pointer shrink-0"
-            title="Trimite solicitarea metodică"
+            className="btn-interaction px-4 py-2.5 bg-[#0D9488] hover:bg-[#0F766E] disabled:bg-slate-200 disabled:text-slate-400 text-white rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 shadow-2xs shrink-0 cursor-pointer"
           >
-            <Send className="w-4 h-4" />
-            <span className="hidden sm:inline">Trimite</span>
+            <span>Trimite</span>
+            <Send className="w-3.5 h-3.5" />
           </button>
         </form>
-
-        <div className="flex items-center justify-between text-[11px] text-slate-500 pt-1">
-          <div className="flex items-center space-x-2 overflow-x-auto">
-            <span className="text-slate-400 hidden sm:inline">Sugestii rapide:</span>
-            {showContinueM3M5 && (
-              <>
-                <button
-                  type="button"
-                  onClick={() => onSendMessage("Continuă cu M3-M5")}
-                  className="text-white bg-[#0D9488] hover:bg-[#0F766E] px-2 py-0.5 rounded font-semibold text-[11px] cursor-pointer shrink-0 flex items-center space-x-1"
-                >
-                  <span>⏩ Continuă cu M3-M5</span>
-                </button>
-                <span className="text-slate-300">•</span>
-              </>
-            )}
-            <button
-              type="button"
-              onClick={() => onSendMessage("Verifică bilanțul matematic orar și marcarea sărbătorilor legale conform normelor v.7.0.")}
-              className="text-[#0D9488] hover:underline cursor-pointer truncate"
-            >
-              Bilanț orar v.7.0
-            </button>
-            <span className="text-slate-300">•</span>
-            <button
-              type="button"
-              onClick={() => onSendMessage("Adaugă 2 ore de recapitulare și evaluare sumativă la finalul Modulului 2.")}
-              className="text-[#0D9488] hover:underline cursor-pointer truncate"
-            >
-              + Recapitulare M2
-            </button>
-            <span className="text-slate-300">•</span>
-            <button
-              type="button"
-              onClick={() => onSendMessage("Evidențiază săptămâna „Școala altfel” și „Săptămâna verde” cu ore fără predare standard.")}
-              className="text-[#0D9488] hover:underline cursor-pointer truncate"
-            >
-              Săptămâni Speciale
-            </button>
-            <span className="text-slate-300">•</span>
-            <button
-              type="button"
-              onClick={handleQuickGenerate}
-              className="text-[#0D9488] hover:underline cursor-pointer font-semibold truncate"
-            >
-              Regenerează {tipDocument}
-            </button>
-          </div>
-
-          <span className="text-[10px] text-slate-400 shrink-0">
-            {headerData.disciplina || "EduMetodist"} • {headerData.clasa}
-          </span>
-        </div>
       </div>
-    </div>
+    </section>
   );
 };

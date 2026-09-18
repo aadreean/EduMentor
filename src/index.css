@@ -139,20 +139,99 @@
   font-weight: 600;
 }
 
-/* Print optimizations for teachers */
+/* Print optimizations for teachers - Strict A4 Landscape */
 @media print {
-  header, #btn-copy-word, .no-print {
+  @page {
+    size: A4 landscape;
+    margin: 10mm 12mm 10mm 12mm;
+  }
+
+  header,
+  footer,
+  nav,
+  button,
+  input,
+  select,
+  textarea,
+  .no-print,
+  #section-date-tehnice,
+  #section-fisiere,
+  #section-tipologie,
+  #document-actions-bar,
+  #chat-modificari,
+  #quick-actions,
+  .btn-interaction {
     display: none !important;
   }
-  body {
+
+  html, body, #root, main {
     background: #ffffff !important;
     color: #000000 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    min-height: auto !important;
   }
+
+  #section-document-generat {
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: transparent !important;
+  }
+
+  #document-print-zone {
+    display: block !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+  }
+
+  #plan-table-content {
+    font-size: 9pt !important;
+    line-height: 1.3 !important;
+    color: #000000 !important;
+  }
+
   #plan-table-content table {
-    border: 1px solid #000 !important;
+    width: 100% !important;
+    border-collapse: collapse !important;
+    page-break-inside: auto !important;
+    border: 1px solid #000000 !important;
+    margin-top: 8px !important;
+    margin-bottom: 8px !important;
   }
-  #plan-table-content th, #plan-table-content td {
-    border: 1px solid #000 !important;
+
+  #plan-table-content thead {
+    display: table-header-group !important;
+  }
+
+  #plan-table-content tr {
+    page-break-inside: avoid !important;
+    page-break-after: auto !important;
+  }
+
+  #plan-table-content th {
+    background-color: #f2f2f2 !important;
+    color: #000000 !important;
+    border: 1px solid #000000 !important;
+    padding: 4px 6px !important;
+    font-size: 8.5pt !important;
+    font-weight: bold !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  #plan-table-content td {
+    color: #000000 !important;
+    border: 1px solid #000000 !important;
+    padding: 4px 6px !important;
+    font-size: 8.5pt !important;
+    vertical-align: top !important;
   }
 }
 

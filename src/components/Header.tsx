@@ -23,13 +23,13 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCalendar, onLoadSample }) 
                 2026 - 2027
               </span>
               <span className="hidden md:inline-flex items-center px-2 py-0.5 rounded-md text-[10.5px] font-medium bg-slate-100 text-slate-700 border border-slate-200">
-                by profesor Adrian Podar
+                autor prof. Adrian Podar
               </span>
             </div>
             <p className="text-[11px] sm:text-xs text-slate-500 font-normal flex items-center gap-1.5 flex-wrap">
               <span>Asistent didactic pentru planificări curriculare & proiecte de lecție</span>
               <span className="text-slate-300 md:hidden">•</span>
-              <span className="text-[#0D9488] font-medium md:hidden">by profesor Adrian Podar</span>
+              <span className="text-[#0D9488] font-medium md:hidden">autor prof. Adrian Podar</span>
             </p>
           </div>
         </div>
