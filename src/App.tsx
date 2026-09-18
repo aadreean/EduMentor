@@ -4,6 +4,7 @@
  */
 
 import React, { useState } from "react";
+import { Facebook, Youtube } from "lucide-react";
 import { Header } from "./components/Header";
 import { AcademicCalendarModal } from "./components/AcademicCalendarModal";
 import { HoursCalculatorWidget } from "./components/HoursCalculatorWidget";
@@ -296,20 +297,48 @@ Aplicația este organizată într-un **flux logic vertical, secvențial, de sus 
         />
       </main>
 
-      {/* Footer Oficial EduMetodist */}
-      <footer className="mt-10 border-t border-[#E2E8F0] bg-white py-5 px-4 sm:px-6 text-center text-xs text-slate-500">
-        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+      {/* Footer Oficial EduMetodist / EduMentor */}
+      <footer className="mt-10 border-t border-[#E2E8F0] bg-white py-6 px-4 sm:px-6 text-center text-xs text-slate-500">
+        <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center space-x-2">
             <span className="font-bold text-[#1E293B]">EduMetodist România</span>
             <span className="text-slate-300">•</span>
             <span>Anul Școlar 2026-2027</span>
           </div>
+
           <div className="text-slate-600 font-medium">
             Concept metodic & dezvoltare: <span className="text-[#0D9488] font-bold">autor prof. Adrian Podar</span>
           </div>
-          <div className="text-[11px] text-slate-400">
-            Conform standardelor oficiale MEC & Structura pe 5 Module
+
+          {/* Zonă de Contact & Sugestii Sociale (Discretă & Elegantă) */}
+          <div className="flex items-center space-x-2.5">
+            <a
+              href="https://www.facebook.com/adrianvepodar/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-interaction inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#F8FAF9] hover:bg-[#F0FDFA] text-slate-700 hover:text-[#0D9488] border border-[#E2E8F0] hover:border-[#99F6E4] font-medium transition-all shadow-2xs cursor-pointer"
+              title="Trimite sugestii sau contactează-l pe autor pe Facebook"
+            >
+              <Facebook className="w-3.5 h-3.5 text-[#1877F2]" />
+              <span>Trimite sugestii</span>
+            </a>
+
+            <a
+              href="https://www.youtube.com/@adrian_podar"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-interaction inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#F8FAF9] hover:bg-rose-50 text-slate-700 hover:text-rose-600 border border-[#E2E8F0] hover:border-rose-200 font-medium transition-all shadow-2xs cursor-pointer"
+              title="Canalul oficial de YouTube prof. Adrian Podar"
+            >
+              <Youtube className="w-3.5 h-3.5 text-[#FF0000]" />
+              <span>Canal YouTube</span>
+            </a>
           </div>
+        </div>
+
+        <div className="max-w-6xl mx-auto mt-4 pt-3 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between text-[11px] text-slate-400 gap-2">
+          <span>Conform standardelor oficiale MEC & Structura pe 5 Module</span>
+          <span>Aplicație didactică dedicată cadrelor didactice din învățământul preuniversitar</span>
         </div>
       </footer>
 

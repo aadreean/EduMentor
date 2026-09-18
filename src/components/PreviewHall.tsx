@@ -12,6 +12,8 @@ import {
   FileSpreadsheet,
   ArrowRight,
   Loader2,
+  Facebook,
+  Youtube,
 } from "lucide-react";
 import { ChatMessage, DocumentType, TechnicalHeaderData } from "../types";
 import { copyTableToClipboard, exportWordDocument } from "../utils/fileHelpers";
@@ -415,6 +417,33 @@ export const PreviewHall: React.FC<PreviewHallProps> = ({
             <Send className="w-3.5 h-3.5" />
           </button>
         </form>
+
+        <div className="flex flex-col sm:flex-row items-center justify-between max-w-4xl mx-auto mt-2.5 px-1 text-[11px] text-slate-400 gap-1.5">
+          <span>Ajustează prin dialog metodic sau trimite sugestii direct către autor:</span>
+          <div className="flex items-center space-x-3">
+            <a
+              href="https://www.facebook.com/adrianvepodar/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-[#0D9488] text-slate-600 inline-flex items-center gap-1 transition-colors font-medium cursor-pointer"
+              title="Trimite sugestii pe Facebook"
+            >
+              <Facebook className="w-3 h-3 text-[#1877F2]" />
+              <span>Trimite sugestii</span>
+            </a>
+            <span className="text-slate-300">•</span>
+            <a
+              href="https://www.youtube.com/@adrian_podar"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-rose-600 text-slate-600 inline-flex items-center gap-1 transition-colors font-medium cursor-pointer"
+              title="Canalul oficial YouTube"
+            >
+              <Youtube className="w-3 h-3 text-[#FF0000]" />
+              <span>Canal YouTube</span>
+            </a>
+          </div>
+        </div>
       </div>
     </section>
   );

@@ -1,5 +1,5 @@
 import React from "react";
-import { GraduationCap, Calendar, Sparkles } from "lucide-react";
+import { GraduationCap, Calendar, Sparkles, Facebook, Youtube } from "lucide-react";
 
 interface HeaderProps {
   onOpenCalendar: () => void;
@@ -56,6 +56,29 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCalendar, onLoadSample }) 
             <Calendar className="w-3.5 h-3.5 mr-1.5 text-slate-600" />
             <span className="hidden md:inline">Calendar</span> 2026-2027
           </button>
+
+          <div className="hidden lg:flex items-center space-x-2 pl-2 border-l border-slate-200">
+            <a
+              href="https://www.facebook.com/adrianvepodar/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-interaction inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-slate-600 hover:text-[#0D9488] bg-slate-50 hover:bg-[#F0FDFA] rounded-lg border border-[#E2E8F0] hover:border-[#99F6E4] transition-all"
+              title="Trimite sugestii autorului pe Facebook"
+            >
+              <Facebook className="w-3.5 h-3.5 text-[#1877F2]" />
+              <span className="hidden xl:inline">Trimite</span> sugestii
+            </a>
+            <a
+              href="https://www.youtube.com/@adrian_podar"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-interaction inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-slate-600 hover:text-rose-600 bg-slate-50 hover:bg-rose-50 rounded-lg border border-[#E2E8F0] hover:border-rose-200 transition-all"
+              title="Canal oficial YouTube - prof. Adrian Podar"
+            >
+              <Youtube className="w-3.5 h-3.5 text-[#FF0000]" />
+              <span className="hidden xl:inline">Canal</span> YouTube
+            </a>
+          </div>
         </div>
       </div>
     </header>
