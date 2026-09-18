@@ -81,7 +81,7 @@ export const PreviewHall: React.FC<PreviewHallProps> = ({
     combinedDocument ||
     (lastAssistantMessage
       ? lastAssistantMessage.content
-      : latestAssistantMessage && latestAssistantMessage.content.includes("|")
+      : latestAssistantMessage
       ? latestAssistantMessage.content
       : "");
 

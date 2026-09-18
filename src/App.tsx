@@ -15,6 +15,7 @@ import { PreviewHall } from "./components/PreviewHall";
 import { EduChatAssistant } from "./components/EduChatAssistant";
 import { ChatMessage, DocumentType, FilePayload, TechnicalHeaderData } from "./types";
 import { SAMPLE_PACKS, STANDARD_TEMPLATES } from "./data/curriculumData";
+import { generatePedagogicalPlan } from "./utils/planGenerator";
 
 export default function App() {
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
@@ -160,6 +161,10 @@ export default function App() {
     setMessages((prev) => [...prev, userMsg]);
     setIsLoading(true);
 
+    const activeDisciplina = disciplina || headerData.disciplina || "Limba și literatura română";
+    const activeClasa = clasa || headerData.clasa || "Clasa a VII-a";
+    const activeNorma = Number(oreSaptamana) || 2;
+
     try {
       // Concatenează conținutul tuturor fișierelor din fiecare categorie înainte de trimitere
       const combinedProgramaText = [
@@ -195,6 +200,15 @@ export default function App() {
         .filter(Boolean)
         .join("\n\n");
 
+      // Sanitizează payload-urile fișierelor pentru a preveni căderea request-ului din cauza dimensiunii excesive
+      const sanitizeFile = (f: FilePayload) => ({
+        name: f.name,
+        size: f.size,
+        type: f.type,
+        textSnippet: f.textSnippet,
+        data: f.size && f.size < 3.5 * 1024 * 1024 ? f.data : undefined,
+      });
+
       const response = await fetch("/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -204,14 +218,14 @@ export default function App() {
             role: m.role,
             content: m.content,
           })),
-          clasa,
-          oreSaptamana,
+          clasa: activeClasa,
+          oreSaptamana: activeNorma,
           tipDocument,
-          disciplina: disciplina || headerData.disciplina,
+          disciplina: activeDisciplina,
           headerData,
-          sablonFiles,
-          programaFiles,
-          suportFiles,
+          sablonFiles: sablonFiles.map(sanitizeFile),
+          programaFiles: programaFiles.map(sanitizeFile),
+          suportFiles: suportFiles.map(sanitizeFile),
           sablonText: combinedSablonText,
           programaText: combinedProgramaText,
           suportText: combinedSuportText,
@@ -220,7 +234,7 @@ export default function App() {
 
       const data = await response.json();
 
-      if (data.success && data.text) {
+      if (data.success && data.text && data.text.includes("|")) {
         const assistantMsg: ChatMessage = {
           id: `ast-${Date.now()}`,
           role: "assistant",
@@ -229,41 +243,83 @@ export default function App() {
         };
         setMessages((prev) => [...prev, assistantMsg]);
       } else {
+        console.warn("API did not return a structured table, employing curricular plan fallback.");
+        const fallbackText = generatePedagogicalPlan({
+          clasa: activeClasa,
+          disciplina: activeDisciplina,
+          oreSaptamana: activeNorma,
+          tipDocument,
+          headerData,
+          manualSuport: headerData.manualSuport,
+          programaSnippets: [combinedProgramaText].filter(Boolean),
+          suportSnippets: [combinedSuportText].filter(Boolean),
+        });
+
+        const assistantMsg: ChatMessage = {
+          id: `ast-fallback-${Date.now()}`,
+          role: "assistant",
+          content: fallbackText,
+          timestamp: new Date().toLocaleTimeString("ro-RO", { hour: "2-digit", minute: "2-digit" }),
+        };
+        setMessages((prev) => [...prev, assistantMsg]);
+      }
+    } catch (err: any) {
+      console.error("Fetch error, invoking direct client curricular fallback:", err);
+      try {
+        const fallbackText = generatePedagogicalPlan({
+          clasa: activeClasa,
+          disciplina: activeDisciplina,
+          oreSaptamana: activeNorma,
+          tipDocument,
+          headerData,
+          manualSuport: headerData.manualSuport,
+          programaSnippets: [programaText, ...programaFiles.map((f) => f.textSnippet || f.name)].filter(Boolean),
+          suportSnippets: [suportText, ...suportFiles.map((f) => f.textSnippet || f.name)].filter(Boolean),
+        });
+
+        const assistantMsg: ChatMessage = {
+          id: `ast-fallback-${Date.now()}`,
+          role: "assistant",
+          content: fallbackText,
+          timestamp: new Date().toLocaleTimeString("ro-RO", { hour: "2-digit", minute: "2-digit" }),
+        };
+        setMessages((prev) => [...prev, assistantMsg]);
+      } catch (fallbackErr) {
         const errorMsg: ChatMessage = {
           id: `ast-err-${Date.now()}`,
           role: "assistant",
-          content:
-            data.error ||
-            "A intervenit o eroare la generare. Te rugăm să reîncerci.",
+          content: `### ⚠️ Notificare metodist\n\nA apărut o problemă la generare. Vă rugăm să reîncercați apăsând din nou butonul **GENEREAZĂ**.\n\nDetalii tehnice: ${err?.message || "Conexiune întreruptă"}`,
           timestamp: new Date().toLocaleTimeString("ro-RO", { hour: "2-digit", minute: "2-digit" }),
         };
         setMessages((prev) => [...prev, errorMsg]);
       }
-    } catch (err: any) {
-      console.error("Fetch error:", err);
-      const errorMsg: ChatMessage = {
-        id: `ast-err-${Date.now()}`,
-        role: "assistant",
-        content:
-          "A apărut o problemă de conexiune cu serverul. Te rugăm să verifici și să reîncerci.",
-        timestamp: new Date().toLocaleTimeString("ro-RO", { hour: "2-digit", minute: "2-digit" }),
-      };
-      setMessages((prev) => [...prev, errorMsg]);
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleGenerateClick = () => {
-    // Scroll smoothly to Section 4
-    setTimeout(() => {
+    if (isLoading) return;
+
+    // Setează imediat starea de încărcare pentru feedback vizual instant
+    setIsLoading(true);
+
+    // Scroll instant și fluid către Secțiunea 4 (Document Generat)
+    const scrollToSection4 = () => {
       const el = document.getElementById("section-document-generat");
       if (el) {
         el.scrollIntoView({ behavior: "smooth", block: "start" });
       }
-    }, 100);
+    };
 
-    const promptText = `Te rog să generezi ${tipDocument.toUpperCase()} INTEGRALĂ pentru ${clasa}, disciplina ${disciplina || headerData.disciplina}, cu norma de ${oreSaptamana} ${oreSaptamana === 1 ? "oră" : "ore"} pe săptămână, conform structurii oficiale pe 5 module a anului școlar 2026-2027.
+    scrollToSection4();
+    setTimeout(scrollToSection4, 100);
+
+    const activeDisciplina = disciplina || headerData.disciplina || "Limba și literatura română";
+    const activeClasa = clasa || headerData.clasa || "Clasa a VII-a";
+    const activeNorma = Number(oreSaptamana) || 2;
+
+    const promptText = `Te rog să generezi ${tipDocument.toUpperCase()} INTEGRALĂ pentru ${activeClasa}, disciplina ${activeDisciplina}, cu norma de ${activeNorma} ${activeNorma === 1 ? "oră" : "ore"} pe săptămână, conform structurii oficiale pe 5 module a anului școlar 2026-2027.
 MANDAT STRICT: Este obligatoriu să generezi atât antetul tehnic oficial complet pe două coloane, cât și ÎNTREGUL TABEL CURRICULAR COMPLET CU TOATE CELE 7 COLOANE OFICIALE PENTRU TOATE CELE 5 MODULE (S1-S36), fără a te opri doar la antet!`;
     handleSendMessage(promptText);
   };
