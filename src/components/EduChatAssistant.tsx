@@ -165,14 +165,14 @@ Despre ce doriți să discutăm astăzi?`,
 
   return (
     <>
-      {/* 1. DISCREET FLOATING LAUNCHER BUTTON (Bottom Right) */}
+      {/* 1. DISCREET FLOATING LAUNCHER BUTTON (Bottom Right - Positioned above third-party badges) */}
       {!isOpen && (
         <button
           type="button"
           onClick={onOpen}
           id="btn-open-chat-assistant"
           aria-label="Deschide Asistentul Metodist & Căutare Edu"
-          className="no-print fixed bottom-5 right-5 z-40 btn-interaction group flex items-center gap-2.5 px-4 py-3 bg-[#0D9488] hover:bg-[#0F766E] text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer border border-[#14B8A6]"
+          className="no-print fixed bottom-20 sm:bottom-24 right-6 z-[9999] btn-interaction group flex items-center gap-2.5 px-4 py-3 bg-[#0D9488] hover:bg-[#0F766E] text-white rounded-full shadow-xl hover:shadow-2xl transition-all duration-200 cursor-pointer border border-[#14B8A6]"
           title="Asistent Metodist & Căutare Web cu Google Search"
         >
           <div className="relative flex items-center justify-center">
@@ -194,7 +194,7 @@ Despre ce doriți să discutăm astăzi?`,
 
       {/* 2. CHAT DRAWER / MODAL INTERFACE */}
       {isOpen && (
-        <div className="no-print fixed inset-0 z-50 flex justify-end bg-slate-900/30 backdrop-blur-xs transition-opacity animate-appear-smooth">
+        <div className="no-print fixed inset-0 z-[9999] flex justify-end bg-slate-900/30 backdrop-blur-xs transition-opacity animate-appear-smooth">
           <div
             id="chat-assistant-drawer"
             className="w-full sm:w-[460px] md:w-[500px] h-full bg-white shadow-2xl flex flex-col border-l border-slate-200 relative"
