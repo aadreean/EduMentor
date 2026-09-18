@@ -81,7 +81,7 @@ export const PreviewHall: React.FC<PreviewHallProps> = ({
     combinedDocument ||
     (lastAssistantMessage
       ? lastAssistantMessage.content
-      : latestAssistantMessage && latestAssistantMessage.content.length > 200
+      : latestAssistantMessage && latestAssistantMessage.content.includes("|")
       ? latestAssistantMessage.content
       : "");
 
@@ -328,70 +328,11 @@ export const PreviewHall: React.FC<PreviewHallProps> = ({
               </div>
             </div>
           ) : (
-            /* Draft de așteptare înainte de generare */
-            <div className="space-y-6 animate-appear-smooth">
-              {/* Antet Oficial pre-completat permanent vizibil */}
-              <div className="border-b border-[#E2E8F0] pb-4 flex flex-col sm:flex-row justify-between text-xs sm:text-[13px] leading-relaxed">
-                <div className="space-y-1">
-                  <p><strong>Unitatea de învățământ:</strong> {headerData.unitateInvatamant || "Colegiul Național „Mihai Viteazul”"}</p>
-                  <p><strong>Anul școlar:</strong> 2026-2027</p>
-                  <p><strong>Disciplina:</strong> {headerData.disciplina || "Limba și literatura română"}</p>
-                  <p><strong>Manual/Suport:</strong> {headerData.manualSuport || "Manual Ed. Art Klett"}</p>
-                  <p><strong>Clasa:</strong> {headerData.clasa || clasa}</p>
-                  <p><strong>Nr. ore pe săptămână:</strong> {headerData.nrOreSaptamana || `${oreSaptamana} ore/săpt.`}</p>
-                  <p><strong>Profesor:</strong> {headerData.profesor || "Prof. Adrian Podar"}</p>
-                </div>
-                <div className="mt-3 sm:mt-0 text-left sm:text-right space-y-1">
-                  <p><strong>Avizat director:</strong> {headerData.director || "Prof. dr. Popescu Ion"}</p>
-                  <p><strong>Avizat responsabil catedră:</strong> {headerData.respCatedra || "Prof. Georgescu Elena"}</p>
-                  <p><strong>Nr. înregistrare:</strong> {headerData.nrInregistrare || "......................."}</p>
-                  <p><strong>Vacanță februarie:</strong> {headerData.vacantaFebruarie || "Săptămâna 2 (22 - 28 Februarie 2027)"}</p>
-                </div>
-              </div>
-
-              {/* Titlu document */}
-              <div className="text-center py-2">
-                <h2 className="text-sm sm:text-base font-bold text-[#1E293B] uppercase tracking-wide">
-                  {tipDocument === "Planificare anuală"
-                    ? "PLANIFICARE ANUALĂ - ANUL ȘCOLAR 2026-2027"
-                    : tipDocument === "Planificare pe unitate"
-                    ? "PLANIFICARE PE UNITĂȚI DE ÎNVĂȚARE - ANUL ȘCOLAR 2026-2027"
-                    : "PROIECT DE LECȚIE"}
-                </h2>
-                <p className="text-xs text-slate-500 font-sans mt-1">
-                  Simulare A4 Landscape • Standard Curricular Oficial • autor prof. Adrian Podar
-                </p>
-              </div>
-
-              {/* Zonă de îndrumare prietenoasă */}
-              <div className="p-8 bg-[#F8FAF9] rounded-2xl border border-dashed border-[#CBD5E1] text-center font-sans space-y-4">
-                <div className="max-w-md mx-auto space-y-2">
-                  <div className="w-12 h-12 rounded-2xl bg-[#F0FDFA] border border-[#CCFBF1] text-[#0D9488] mx-auto flex items-center justify-center">
-                    <Sparkles className="w-6 h-6" />
-                  </div>
-                  <h4 className="text-sm sm:text-base font-bold text-[#1E293B]">
-                    Documentul didactic este pregătit pentru generare
-                  </h4>
-                  <p className="text-xs text-slate-600 leading-relaxed">
-                    Datele tale administrative sunt configurate. Apasă pe butonul mare solid teal de mai sus:
-                    <br />
-                    <strong className="text-[#0D9488]">„GENEREAZĂ {tipDocument.toUpperCase()} ACUM”</strong>
-                    <br />
-                    pentru a crea automat tabelul complet cu toate modulele și coloanele oficiale.
-                  </p>
-                </div>
-
-                <div className="pt-2">
-                  <button
-                    type="button"
-                    onClick={onGenerate}
-                    className="btn-interaction px-5 py-2.5 bg-[#0D9488] hover:bg-[#0F766E] text-white rounded-xl text-xs font-bold shadow-xs inline-flex items-center space-x-2 cursor-pointer"
-                  >
-                    <Sparkles className="w-4 h-4" />
-                    <span>Generează Acum {tipDocument}</span>
-                  </button>
-                </div>
-              </div>
+            /* Empty state curat, scurt și cu font gri discret conform specificației */
+            <div className="py-24 px-4 text-center animate-appear-smooth flex flex-col items-center justify-center">
+              <p className="text-sm sm:text-base text-slate-400 font-normal leading-relaxed max-w-lg mx-auto">
+                Aștept configurarea... Alege tipul documentului și apasă pe generare pentru a vizualiza rezultatul aici.
+              </p>
             </div>
           )}
         </div>
@@ -418,31 +359,8 @@ export const PreviewHall: React.FC<PreviewHallProps> = ({
           </button>
         </form>
 
-        <div className="flex flex-col sm:flex-row items-center justify-between max-w-4xl mx-auto mt-2.5 px-1 text-[11px] text-slate-400 gap-1.5">
-          <span>Ajustează prin dialog metodic sau trimite sugestii direct către autor:</span>
-          <div className="flex items-center space-x-3">
-            <a
-              href="https://www.facebook.com/adrianvepodar/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-[#0D9488] text-slate-600 inline-flex items-center gap-1 transition-colors font-medium cursor-pointer"
-              title="Trimite sugestii pe Facebook"
-            >
-              <Facebook className="w-3 h-3 text-[#1877F2]" />
-              <span>Trimite sugestii</span>
-            </a>
-            <span className="text-slate-300">•</span>
-            <a
-              href="https://www.youtube.com/@adrian_podar"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-rose-600 text-slate-600 inline-flex items-center gap-1 transition-colors font-medium cursor-pointer"
-              title="Canalul oficial YouTube"
-            >
-              <Youtube className="w-3 h-3 text-[#FF0000]" />
-              <span>Canal YouTube</span>
-            </a>
-          </div>
+        <div className="max-w-4xl mx-auto mt-2 px-1 text-[11px] text-slate-400 text-center sm:text-left">
+          <span>Ajustează promptul sau solicită modificări specifice pentru actualizarea automată a documentului didactic.</span>
         </div>
       </div>
     </section>

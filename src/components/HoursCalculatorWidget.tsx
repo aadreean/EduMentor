@@ -15,7 +15,7 @@ export const HoursCalculatorWidget: React.FC<HoursCalculatorWidgetProps> = ({
   const calculation = calculateAcademicHours(clasa, oreSaptamana);
 
   return (
-    <div className="card-lift bg-white rounded-xl border border-[#E2E8F0] overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+    <div id="widget-calcul-orar" className="no-print card-lift bg-white rounded-xl border border-[#E2E8F0] overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
       <div
         onClick={() => setIsExpanded(!isExpanded)}
         className="p-3.5 bg-[#F8FAF9] hover:bg-slate-50 flex items-center justify-between cursor-pointer transition-colors duration-150"

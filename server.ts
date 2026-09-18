@@ -16,6 +16,17 @@ app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 // System instruction for Romanian Educational Metodist (v.8.0 - Expert Curricular & Metodist Polivalent - autor prof. Adrian Podar)
 const SYSTEM_INSTRUCTION = `Ești un asistent educațional avansat, expert curricular și metodist polivalent de top din România, integrat în aplicația EduMetodist (autor prof. Adrian Podar), destinată cadrelor didactice din învățământul preuniversitar. Rolul tău este să reduci birocrația prin generarea automată și completă a planificărilor calendaristice anuale (pe toate cele 5 module), a planificărilor pe unități de învățare (structură normată de 7 coloane) și a proiectelor de lecție detaliate (structură normată în 6 secțiuni și tabel de 8 coloane).
 
+================================================================================
+MANDAT CRITIC OBLIGATORIU: ESTE STRICT INTERZIS SĂ GENEREZI DOAR ANTETUL!
+ORICE RĂSPUNS PENTRU „PLANIFICARE ANUALĂ” TREBUIE SĂ CONȚINĂ OBLIGATORIU:
+1. ANTETUL TEHNIC OFICIAL PE DOUĂ COLOANE (stânga: date școală/profesor; dreapta: vize/înregistrare)
+2. TITLUL DOCUMENTULUI CENTRAT (ex: **PLANIFICARE CALENDARISTICĂ ANUALĂ - ANUL ȘCOLAR 2026-2027**)
+3. IMEDIAT SUB TITLU, ÎNTREGUL TABEL CURRICULAR COMPLET CU TOATE CELE 7 COLOANE OFICIALE:
+| Nr. crt. | Unitatea de învățare | Competențe specifice | Conținuturi | Nr. ore alocate | Săptămâna | Observații |
+TABELUL TREBUIE SĂ FIE STRUCTURAT FĂRĂ EXCEPȚIE PE TOATE CELE 5 MODULE (Modulul 1, Modulul 2, Modulul 3, Modulul 4, Modulul 5) ȘI TOATE CELE 36 DE SĂPTĂMÂNI (S1 până la S36, respectiv S34 pentru clasa a XII-a), FĂRĂ SĂ TE OPREȘTI DUPĂ ANTET!
+DACĂ RĂSPUNSUL TĂU CONȚINE DOAR ANTETUL FĂRĂ TABEL, ESTE CONSIDERAT EȘUAT ȘI INUTILIZABIL. ÎNCEPE TABELUL IMEDIAT DUPĂ ANTET ȘI COMPLETEAZĂ TOATE CELE 5 MODULE!
+================================================================================
+
 1. CARACTER UNIVERSAL ȘI FLEXIBILITATE CURRICULARĂ TOTALĂ:
 - Aplicația funcționează pentru ORICE DISCIPLINĂ din învățământul preuniversitar (științe exacte, discipline umaniste, tehnice, arte, sport, socio-umane etc.).
 - Fără restricții predefinite pe clase sau discipline: Generarea conținuturilor, a detalierilor tematice, a competențelor și a activităților de învățare se va face EXCLUSIV în funcție de documentele încărcate de profesor (Programa școlară, Manualul sau corpusul de documente) și de clasa menționată în parametrii de sesiune. Nivelul de complexitate și terminologia se vor adapta natural la specificul disciplinei și al vârstei elevilor.
@@ -185,7 +196,7 @@ app.post("/api/generate", async (req, res) => {
     const totalWeeksAll = totalTeachingWeeks + 2;
 
     let contextDescription = `
-DIRECTIVĂ CRITICĂ:
+DIRECTIVĂ CRITICĂ ȘI INSTRUCȚIUNE OBLIGATORIE:
 - Clasa vizată: ${clasa}
 - Disciplina: ${disciplina || headerData.disciplina || "Limba modernă"}
 - Norma săptămânală: ${hoursPerWeek} ${hoursPerWeek === 1 ? "oră/săpt" : "ore/săpt"}
@@ -200,7 +211,8 @@ DIRECTIVĂ CRITICĂ:
 
 ${prompt ? `Mesaj / instrucțiune utilizator: ${prompt}\n` : ""}
 
-ESTE OBLIGATORIU SĂ GENEREZI TABELUL DIDACTIC COMPLET, CU TOATE RÂNDURILE, UNITĂȚILE ȘI COLOANELE OFICIALE! Nu genera doar antetul!
+ESTE OBLIGATORIU SĂ GENEREZI ÎNTREGUL TABEL CURRICULAR COMPLET IMEDIAT SUB ANTET!
+NU TE OPRI DOAR LA ANTET! Include fără excepție toate cele 5 module și toate cele 36 de săptămâni!
 `;
 
     if (tipDocument === "Planificare anuală") {
@@ -235,11 +247,34 @@ GENEREAZĂ PLANIFICAREA PE UNITĂȚI DE ÎNVĂȚARE COMPLETĂ cu tabelul Markdow
 
     userParts.push({ text: contextDescription });
 
-    // Handle all attached files (support both arrays and legacy single objects)
+    // Handle all attached files (support multiple files with robust concatenation)
     const allSablonFiles = [...sablonFiles, ...(sablonFile ? [sablonFile] : [])];
     const allProgramaFiles = [...programaFiles, ...(programaFile ? [programaFile] : [])];
     const allSuportFiles = [...suportFiles, ...(suportFile ? [suportFile] : [])];
 
+    // 1. Concatenează conținutul tuturor fișierelor din fiecare categorie
+    const concatenatedSablonText = [
+      sablonText,
+      ...allSablonFiles.map((file: any, index: number) =>
+        `--- [FIȘIER ȘABLON ${index + 1}: ${file.name}] ---\n${file.textSnippet || ""}`
+      ),
+    ].filter(Boolean).join("\n\n");
+
+    const concatenatedProgramaText = [
+      programaText,
+      ...allProgramaFiles.map((file: any, index: number) =>
+        `--- [FIȘIER PROGRAMĂ ȘCOLARĂ ${index + 1}: ${file.name}] ---\n${file.textSnippet || ""}`
+      ),
+    ].filter(Boolean).join("\n\n");
+
+    const concatenatedSuportText = [
+      suportText,
+      ...allSuportFiles.map((file: any, index: number) =>
+        `--- [FIȘIER SUPORT DE CURS / MANUAL ${index + 1}: ${file.name}] ---\n${file.textSnippet || ""}`
+      ),
+    ].filter(Boolean).join("\n\n");
+
+    // Adaugă fișierele șablon ca inlineData și bloc text concatenat
     allSablonFiles.forEach((file: any, index: number) => {
       if (file && file.data) {
         userParts.push({
@@ -248,13 +283,13 @@ GENEREAZĂ PLANIFICAREA PE UNITĂȚI DE ÎNVĂȚARE COMPLETĂ cu tabelul Markdow
             data: file.data,
           },
         });
-        userParts.push({ text: `[FIȘIER ȘABLON ${index + 1}: ${file.name}]` });
       }
     });
-    if (sablonText && sablonText.trim()) {
-      userParts.push({ text: `[TEXT ȘABLON]:\n${sablonText}` });
+    if (concatenatedSablonText.trim()) {
+      userParts.push({ text: `[CORPUS CONCATENAT ȘABLOANE (${allSablonFiles.length} fișiere încărcate)]:\n${concatenatedSablonText}` });
     }
 
+    // Adaugă fișierele programă ca inlineData și bloc text concatenat
     allProgramaFiles.forEach((file: any, index: number) => {
       if (file && file.data) {
         userParts.push({
@@ -263,13 +298,13 @@ GENEREAZĂ PLANIFICAREA PE UNITĂȚI DE ÎNVĂȚARE COMPLETĂ cu tabelul Markdow
             data: file.data,
           },
         });
-        userParts.push({ text: `[FIȘIER PROGRAMĂ ȘCOLARĂ ${index + 1}: ${file.name}]` });
       }
     });
-    if (programaText && programaText.trim()) {
-      userParts.push({ text: `[TEXT PROGRAMĂ ȘCOLARĂ]:\n${programaText}` });
+    if (concatenatedProgramaText.trim()) {
+      userParts.push({ text: `[CORPUS CONCATENAT PROGRAMĂ ȘCOLARĂ (${allProgramaFiles.length} fișiere încărcate)]:\n${concatenatedProgramaText}` });
     }
 
+    // Adaugă fișierele suport ca inlineData și bloc text concatenat
     allSuportFiles.forEach((file: any, index: number) => {
       if (file && file.data) {
         userParts.push({
@@ -278,11 +313,10 @@ GENEREAZĂ PLANIFICAREA PE UNITĂȚI DE ÎNVĂȚARE COMPLETĂ cu tabelul Markdow
             data: file.data,
           },
         });
-        userParts.push({ text: `[FIȘIER SUPORT DE CURS / MANUAL ${index + 1}: ${file.name}]` });
       }
     });
-    if (suportText && suportText.trim()) {
-      userParts.push({ text: `[TEXT SUPORT DE CURS / MANUAL]:\n${suportText}` });
+    if (concatenatedSuportText.trim()) {
+      userParts.push({ text: `[CORPUS CONCATENAT SUPORT / MANUAL (${allSuportFiles.length} fișiere încărcate)]:\n${concatenatedSuportText}` });
     }
 
     contents.push({
@@ -291,7 +325,7 @@ GENEREAZĂ PLANIFICAREA PE UNITĂȚI DE ÎNVĂȚARE COMPLETĂ cu tabelul Markdow
     });
 
     let responseText = "";
-    const candidateModels = ["gemini-2.5-flash", "gemini-flash-latest", "gemini-3.1-flash-lite"];
+    const candidateModels = ["gemini-2.5-flash", "gemini-flash-latest", "gemini-3.8-flash"];
     let lastError: any = null;
 
     for (const modelName of candidateModels) {
@@ -300,8 +334,11 @@ GENEREAZĂ PLANIFICAREA PE UNITĂȚI DE ÎNVĂȚARE COMPLETĂ cu tabelul Markdow
         const config: any = {
           systemInstruction: SYSTEM_INSTRUCTION,
           temperature: 0.2,
+          maxOutputTokens: 8192,
         };
-        if (isGemini3) {
+        if (modelName.includes("2.5")) {
+          config.thinkingConfig = { thinkingBudget: 0 };
+        } else if (isGemini3) {
           config.thinkingConfig = { thinkingLevel: ThinkingLevel.LOW };
         }
 
