@@ -191,7 +191,10 @@ export const PreviewHall: React.FC<PreviewHallProps> = ({
         </div>
 
         {/* CELE 3 BUTOANE STRICT NECESARE (Copiază Text, Printează PDF, Descarcă DOCX) */}
-        <div className="flex items-center space-x-2 self-end sm:self-auto">
+        <div
+          className="self-start sm:self-auto items-center"
+          style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}
+        >
           {/* Buton 1: Copiază Text */}
           <button
             type="button"
@@ -240,106 +243,113 @@ export const PreviewHall: React.FC<PreviewHallProps> = ({
       </div>
 
       {/* 2. ZONA CENTRALĂ DE PREVIZUALIZARE (A4 LANDSCAPE SIMULATION) */}
-      <div id="document-print-zone" className="p-4 sm:p-7 bg-[#F8FAF9] overflow-x-auto">
-        <div
-          ref={previewContainerRef}
-          className="w-full max-w-5xl mx-auto bg-white rounded-xl border border-[#E2E8F0] p-6 sm:p-10 shadow-[0_1px_4px_rgba(0,0,0,0.03)] min-h-[520px] font-academic text-[#1E293B]"
-        >
-          {isLoading ? (
-            <div className="py-24 flex flex-col items-center justify-center space-y-4 text-center animate-appear-smooth">
-              <div className="w-14 h-14 rounded-2xl bg-[#F0FDFA] border border-[#CCFBF1] flex items-center justify-center text-[#0D9488]">
-                <Loader2 className="w-7 h-7 animate-spin" />
-              </div>
-              <div className="space-y-1">
-                <h3 className="text-base font-bold text-[#1E293B]">
-                  Metodistul elaborează documentul didactic complet...
-                </h3>
-                <p className="text-xs text-slate-500 max-w-md mx-auto">
-                  Se distribuie conținuturile pe toate cele 5 module conform calendarului oficial 2026-2027, calculând riguros orele și generând capul de tabel normat.
-                </p>
-              </div>
-            </div>
-          ) : documentContent ? (
-            <div id="plan-table-content" className="space-y-4 animate-appear-smooth">
-              <div className="markdown-body font-academic text-xs sm:text-sm leading-relaxed overflow-x-auto">
-                <Markdown remarkPlugins={[remarkGfm]}>{documentContent}</Markdown>
-              </div>
-
-              {/* Buton acțiune modulară pentru finalizarea planificării cu M3-M5 dacă a fost generată parțial */}
-              {showContinueM3M5 && (
-                <div className="no-print my-6 p-4 bg-[#F0FDFA] border border-[#0D9488]/30 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xs">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-9 h-9 rounded-lg bg-[#0D9488] text-white flex items-center justify-center shrink-0">
-                      <ArrowRight className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <p className="text-xs font-bold text-slate-800">
-                        Modulele 1 și 2 au fost generate cu succes.
-                      </p>
-                      <p className="text-[11px] text-slate-600">
-                        Apasă pentru a asambla restul modulelor (3, 4 și 5) într-un document unitar.
-                      </p>
-                    </div>
+      <div id="document-print-zone" className="bg-[#F8FAF9] overflow-x-auto">
+        {!documentContent && !isLoading ? (
+          /* Empty state discret cu padding minim; ascunde complet zona albă mare când nu există document */
+          <div className="py-6 px-4 text-center">
+            <p className="text-xs sm:text-sm text-slate-400 font-normal">
+              Aștept configurarea... Apasă pe generare pentru a vizualiza documentul.
+            </p>
+          </div>
+        ) : (
+          <div className="p-4 sm:p-7">
+            <div
+              ref={previewContainerRef}
+              className="w-full max-w-5xl mx-auto bg-white rounded-xl border border-[#E2E8F0] p-6 sm:p-10 shadow-[0_1px_4px_rgba(0,0,0,0.03)] min-h-[520px] font-academic text-[#1E293B]"
+            >
+              {isLoading ? (
+                <div className="py-24 flex flex-col items-center justify-center space-y-4 text-center animate-appear-smooth">
+                  <div className="w-14 h-14 rounded-2xl bg-[#F0FDFA] border border-[#CCFBF1] flex items-center justify-center text-[#0D9488]">
+                    <Loader2 className="w-7 h-7 animate-spin" />
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => onSendMessage("Continuă cu M3-M5")}
-                    disabled={isLoading}
-                    className="btn-interaction px-4 py-2 bg-[#0D9488] hover:bg-[#0F766E] text-white text-xs font-bold rounded-lg shadow-xs flex items-center space-x-2 shrink-0 cursor-pointer"
-                  >
-                    <span>Continuă cu M3-M5</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
-                </div>
-              )}
-
-              {/* Caseta de descărcare la final de document */}
-              <div className="no-print mt-8 pt-6 border-t border-[#E2E8F0] bg-[#F8FAF9] -mx-6 sm:-mx-10 -mb-6 sm:-mb-10 p-6 rounded-b-xl flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 flex items-center justify-center shrink-0">
-                    <FileText className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h4 className="text-xs font-bold text-slate-800 flex items-center gap-1.5 flex-wrap">
-                      <span>Documentul este redactat și pregătit pentru descărcare</span>
-                      <span className="text-[10px] text-[#0D9488] font-semibold bg-[#F0FDFA] px-2 py-0.5 rounded border border-[#CCFBF1]">
-                        autor prof. Adrian Podar
-                      </span>
-                    </h4>
-                    <p className="text-[11px] text-slate-500">
-                      Format A4 Landscape cu margini standard conform normelor metodice
+                  <div className="space-y-1">
+                    <h3 className="text-base font-bold text-[#1E293B]">
+                      Metodistul elaborează documentul didactic complet...
+                    </h3>
+                    <p className="text-xs text-slate-500 max-w-md mx-auto">
+                      Se distribuie conținuturile pe toate cele 5 module conform calendarului oficial 2026-2027, calculând riguros orele și generând capul de tabel normat.
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center space-x-2.5 w-full sm:w-auto">
-                  <button
-                    type="button"
-                    onClick={handleDownloadDocx}
-                    className="btn-interaction flex-1 sm:flex-none px-4 py-2 bg-white hover:bg-slate-50 border border-[#CBD5E1] hover:border-[#0D9488] text-[#1E293B] text-xs font-bold rounded-lg shadow-xs flex items-center justify-center space-x-1.5 cursor-pointer"
-                  >
-                    <Download className="w-4 h-4 text-[#0D9488]" />
-                    <span>Descarcă .DOCX</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handlePrintPdf}
-                    className="btn-interaction flex-1 sm:flex-none px-4 py-2 bg-[#0D9488] hover:bg-[#0F766E] text-white text-xs font-bold rounded-lg shadow-xs flex items-center justify-center space-x-1.5 cursor-pointer"
-                  >
-                    <Printer className="w-4 h-4" />
-                    <span>Printează PDF</span>
-                  </button>
+              ) : (
+                <div id="plan-table-content" className="space-y-4 animate-appear-smooth">
+                  <div className="markdown-body font-academic text-xs sm:text-sm leading-relaxed overflow-x-auto">
+                    <Markdown remarkPlugins={[remarkGfm]}>{documentContent}</Markdown>
+                  </div>
+
+                  {/* Buton acțiune modulară pentru finalizarea planificării cu M3-M5 dacă a fost generată parțial */}
+                  {showContinueM3M5 && (
+                    <div className="no-print my-6 p-4 bg-[#F0FDFA] border border-[#0D9488]/30 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xs">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-9 h-9 rounded-lg bg-[#0D9488] text-white flex items-center justify-center shrink-0">
+                          <ArrowRight className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold text-slate-800">
+                            Modulele 1 și 2 au fost generate cu succes.
+                          </p>
+                          <p className="text-[11px] text-slate-600">
+                            Apasă pentru a asambla restul modulelor (3, 4 și 5) într-un document unitar.
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => onSendMessage("Continuă cu M3-M5")}
+                        disabled={isLoading}
+                        className="btn-interaction px-4 py-2 bg-[#0D9488] hover:bg-[#0F766E] text-white text-xs font-bold rounded-lg shadow-xs flex items-center space-x-2 shrink-0 cursor-pointer"
+                      >
+                        <span>Continuă cu M3-M5</span>
+                        <ArrowRight className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Caseta de descărcare la final de document */}
+                  <div className="no-print mt-8 pt-6 border-t border-[#E2E8F0] bg-[#F8FAF9] -mx-6 sm:-mx-10 -mb-6 sm:-mb-10 p-6 rounded-b-xl flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 flex items-center justify-center shrink-0">
+                        <FileText className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h4 className="text-xs font-bold text-slate-800 flex items-center gap-1.5 flex-wrap">
+                          <span>Documentul este redactat și pregătit pentru descărcare</span>
+                          <span className="text-[10px] text-[#0D9488] font-semibold bg-[#F0FDFA] px-2 py-0.5 rounded border border-[#CCFBF1]">
+                            autor prof. Adrian Podar
+                          </span>
+                        </h4>
+                        <p className="text-[11px] text-slate-500">
+                          Format A4 Landscape cu margini standard conform normelor metodice
+                        </p>
+                      </div>
+                    </div>
+                    <div
+                      className="w-full sm:w-auto items-center"
+                      style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}
+                    >
+                      <button
+                        type="button"
+                        onClick={handleDownloadDocx}
+                        className="btn-interaction flex-1 sm:flex-none px-4 py-2 bg-white hover:bg-slate-50 border border-[#CBD5E1] hover:border-[#0D9488] text-[#1E293B] text-xs font-bold rounded-lg shadow-xs flex items-center justify-center space-x-1.5 cursor-pointer"
+                      >
+                        <Download className="w-4 h-4 text-[#0D9488]" />
+                        <span>Descarcă .DOCX</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handlePrintPdf}
+                        className="btn-interaction flex-1 sm:flex-none px-4 py-2 bg-[#0D9488] hover:bg-[#0F766E] text-white text-xs font-bold rounded-lg shadow-xs flex items-center justify-center space-x-1.5 cursor-pointer"
+                      >
+                        <Printer className="w-4 h-4" />
+                        <span>Printează PDF</span>
+                      </button>
+                    </div>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
-          ) : (
-            /* Empty state curat, scurt și cu font gri discret conform specificației */
-            <div className="py-24 px-4 text-center animate-appear-smooth flex flex-col items-center justify-center">
-              <p className="text-sm sm:text-base text-slate-400 font-normal leading-relaxed max-w-lg mx-auto">
-                Aștept configurarea... Alege tipul documentului și apasă pe generare pentru a vizualiza rezultatul aici.
-              </p>
-            </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       {/* 3. BARA INFERIOARĂ PENTRU AJUSTARE METODICĂ DISCRETĂ */}
