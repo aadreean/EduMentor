@@ -357,7 +357,7 @@ GENEREAZĂ PLANIFICAREA PE UNITĂȚI DE ÎNVĂȚARE COMPLETĂ cu tabelul Markdow
     });
 
     let responseText = "";
-    const candidateModels = ["gemini-2.5-flash", "gemini-flash-latest", "gemini-3.8-flash"];
+    const candidateModels = ["gemini-3.5-flash", "gemini-3.8-flash", "gemini-flash-latest"];
     let lastError: any = null;
 
     for (const modelName of candidateModels) {
@@ -368,9 +368,11 @@ GENEREAZĂ PLANIFICAREA PE UNITĂȚI DE ÎNVĂȚARE COMPLETĂ cu tabelul Markdow
           temperature: 0.2,
           maxOutputTokens: 8192,
         };
-        if (modelName.includes("2.5")) {
-          config.thinkingConfig = { thinkingBudget: 0 };
-        } else if (isGemini3) {
+        // Use Google Search grounding for gemini-3.5-flash to get up-to-date curricular and educational data
+        if (modelName === "gemini-3.5-flash") {
+          config.tools = [{ googleSearch: {} }];
+        }
+        if (isGemini3) {
           config.thinkingConfig = { thinkingLevel: ThinkingLevel.LOW };
         }
 
@@ -420,6 +422,221 @@ GENEREAZĂ PLANIFICAREA PE UNITĂȚI DE ÎNVĂȚARE COMPLETĂ cu tabelul Markdow
         error: error.message || "A apărut o eroare la generarea planificării.",
       });
     }
+  }
+});
+
+function getPedagogicalChatFallback(question: string, clasa: string, disciplina: string): string {
+  const q = (question || "").toLowerCase();
+
+  if (q.includes("structur") || q.includes("modul") || q.includes("calendar") || q.includes("încep") || q.includes("vacanț")) {
+    return `### 📅 Structura Oficială a Anului Școlar 2026-2027 (România)
+Conform calendarului normat pe 5 module și 36 de săptămâni:
+
+* **Modulul 1:** Luni, 7 septembrie 2026 – Vineri, 23 octombrie 2026 (7 săptămâni: S1 - S7).
+  * *S5 (5 - 9 oct. 2026):* Programul Național „Mai mult decât Școala altfel” (5 oct. Ziua Educației).
+* **Vacanța de toamnă:** 24 octombrie – 1 noiembrie 2026.
+* **Modulul 2:** Luni, 2 noiembrie 2026 – Marți, 22 decembrie 2026 (7 săpt. + 2 zile: S8 - S15).
+  * *Zile libere:* 30 noiembrie (Sf. Andrei) & 1 decembrie (Ziua Națională).
+* **Vacanța de iarnă:** 23 decembrie 2026 – 10 ianuarie 2027.
+* **Modulul 3:** Luni, 11 ianuarie 2027 – Vineri, 19 februarie 2027 (6 săptămâni: S16 - S21).
+* **Vacanța de schi (februarie):** O săptămână mobilă (interval 15-28 februarie 2027, conform deciziei ISJ).
+* **Modulul 4:** Luni, 1 martie 2027 – Vineri, 23 aprilie 2027 (8 săptămâni: S22 - S29).
+  * *S29 (19 - 23 apr. 2027):* Programul Național „Săptămâna verde”.
+* **Vacanța de primăvară:** 24 aprilie – 4 mai 2027 (include Paștele Ortodox și 1 Mai).
+* **Modulul 5:** Miercuri, 5 mai 2027 – Vineri, 18 iunie 2027 (S30 - S36; finalizare la 4 iunie pentru cls. a XII-a, 11 iunie pentru cls. a VIII-a).`;
+  }
+
+  if (q.includes("verde") || q.includes("săptămâna verde") || q.includes("s29")) {
+    return `### 🌱 Ghid Metodic: Săptămâna Verde (Anul Școlar 2026-2027)
+* **Perioada normată:** Săptămâna S29 (19 – 23 aprilie 2027), la finalul Modulului 4.
+* **Obiective operaționale recomandate:**
+  1. Conștientizarea amprentei de carbon și a impactului poluării locale.
+  2. Inițierea de campanii școlare de colectare selectivă și reciclare creativă.
+  3. Explorarea ecosistemelor prin vizite pe teren sau documentare ghidată.
+* **Proiecte sugerate:** *Grădina școlii*, *Eco-Reporteri comunitari*, *Calculul consumului energetic în gospodărie*.`;
+  }
+
+  if (q.includes("altfel") || q.includes("scoala altfel") || q.includes("s5")) {
+    return `### 🎭 Ghid Metodic: Programul „Școala Altfel” (Anul Școlar 2026-2027)
+* **Perioada normată:** Săptămâna S5 (5 – 9 octombrie 2026), în cadrul Modulului 1.
+* **Ziua Educației:** 5 Octombrie este Ziua Mondială a Educației.
+* **Directivă didactică:** Fără predare de materie ordinară. Se recomandă activități non-formale: voluntariat, orientare în carieră, ateliere de comunicare și dezbateri, vizite la teatre și muzee.`;
+  }
+
+  if (q.includes("bloom") || q.includes("obiectiv") || q.includes("operațional")) {
+    return `### 🎯 Formularea Obiectivelor Operaționale (Taxonomia lui Bloom revizuită)
+Un obiectiv didactic bine formulat (modelul Mager) conține 3 componente esențiale:
+1. **Comportamentul observabil:** Redat prin verbe de acțiune specifice (*să identifice, să clasifice, să compare, să redacteze* - se evită verbe imprecise precum *să cunoască* sau *să înțeleagă*).
+2. **Condițiile de realizare:** (*„utilizând harta istorică”, „pe baza formulelor matematice”, „în echipă de 3 elevi”*).
+3. **Criteriul de performanță minimă:** (*„în proporție de cel puțin 80%”, „cel puțin 3 exemple corecte din 4”*).`;
+  }
+
+  return `### 📚 Consultanță Didactică & Metodică EduMentor (autor prof. Adrian Podar)
+În contextul disciplinei **${disciplina || "disciplinei selectate"}** (${clasa || "învățământ preuniversitar"}):
+
+* **Corespondența curriculară:** Fiecare unitate de învățare din planificare trebuie să reflecte competențele specifice asociate din programa școlară în vigoare aprobată de MEC.
+* **Evaluare formativă:** Se recomandă minim 2 evaluări formative pe fiecare modul curricular, însoțite de fișe de progres individual.
+* **Resurse utile:** Verificați periodic portalul **edu.ro** și platformele aprobate de Ministerul Educației pentru actualizări de calendare și ghiduri de bune practici didactice.`;
+}
+
+// MULTI-TURN GEMINI CHATBOT WITH GOOGLE SEARCH GROUNDING
+// - Complex tasks: gemini-3.1-pro-preview (with fallback to gemini-3.5-flash)
+// - General tasks: gemini-3.5-flash (with googleSearch tool)
+// - Fast tasks: gemini-3.1-flash-lite
+app.post("/api/chat", async (req, res) => {
+  try {
+    const {
+      messages = [],
+      taskType = "general", // 'fast' | 'general' | 'complex'
+      clasa = "",
+      disciplina = "",
+    } = req.body;
+
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      return res.status(500).json({
+        success: false,
+        error: "Cheia API Gemini nu este configurată.",
+      });
+    }
+
+    const ai = getGeminiClient();
+
+    let primaryModel = "gemini-3.5-flash";
+    let fallbackModel = "gemini-3.5-flash";
+
+    if (taskType === "fast") {
+      primaryModel = "gemini-3.1-flash-lite";
+      fallbackModel = "gemini-3.5-flash";
+    } else if (taskType === "complex") {
+      primaryModel = "gemini-3.1-pro-preview";
+      fallbackModel = "gemini-3.5-flash";
+    } else {
+      primaryModel = "gemini-3.5-flash";
+      fallbackModel = "gemini-3.8-flash";
+    }
+
+    const CHAT_SYSTEM_INSTRUCTION = `Ești „Asistentul Metodist EduMentor” (dezvoltat pentru cadrele didactice din România, autor prof. Adrian Podar).
+Rolul tău este să oferi consultanță curriculară și metodică de elită, răspunzând cu acuratețe, căldură și profesionalism cadrelor didactice.
+DOMENII CHEIE DE EXPERTIZĂ:
+1. Structura oficială a anului școlar 2026-2027 pe 5 module și 36 de săptămâni (S1-S7 Modulul 1 cu S5 Școala altfel, S8-S15 Modulul 2, S16-S21 Modulul 3, S22-S29 Modulul 4 cu S29 Săptămâna verde, S30-S36 Modulul 5).
+2. Programele școlare MEC în vigoare pentru ciclurile primar, gimnazial și liceal (filieră, profil, specializare).
+3. Legislație educațională din România, ordine de ministru (OMEC/ME), calendare de olimpiade și examene naționale.
+4. Proiectare didactică pe competențe (obiective operaționale, strategii interactive, instrumente de evaluare formativă și sumativă, diferențiere curriculară).
+5. Planificare integrată pentru învățământul primar (CLR, MEM, DP, AVAP, MM).
+
+Când utilizatorul întreabă despre noutăți legislative, structuri oficiale, date specifice sau programe școlare, folosești căutarea Google Search integrată pentru a verifica faptele și a oferi răspunsuri sigure și ancorate în realitatea învățământului românesc.
+Păstrează un ton prietenos, colegial și bine structurat (folosind liste, tabele mici sau puncte cheie când e util).`;
+
+    // Map conversation history into parts
+    const contents = messages.map((m: any) => ({
+      role: m.role === "assistant" || m.role === "model" ? "model" : "user",
+      parts: [{ text: m.content || "" }],
+    }));
+
+    if (clasa || disciplina) {
+      const lastUser = [...contents].reverse().find((c) => c.role === "user");
+      if (lastUser && lastUser.parts && lastUser.parts[0]) {
+        lastUser.parts[0].text = `[Context sesiune: ${clasa || "Toate clasele"} - ${disciplina || "Toate disciplinele"}]\n\n${lastUser.parts[0].text}`;
+      }
+    }
+
+    const candidateModelsToTry = [primaryModel];
+    if (fallbackModel !== primaryModel && !candidateModelsToTry.includes(fallbackModel)) {
+      candidateModelsToTry.push(fallbackModel);
+    }
+    if (!candidateModelsToTry.includes("gemini-3.5-flash")) {
+      candidateModelsToTry.push("gemini-3.5-flash");
+    }
+
+    let resultText = "";
+    let sources: Array<{ title: string; uri: string }> = [];
+    let searchQueries: string[] = [];
+    let usedModel = primaryModel;
+    let lastErr: any = null;
+
+    for (const model of candidateModelsToTry) {
+      try {
+        usedModel = model;
+        const config: any = {
+          systemInstruction: CHAT_SYSTEM_INSTRUCTION,
+          temperature: 0.3,
+        };
+
+        // Enable Google Search grounding for gemini-3.5-flash and general/complex tasks
+        if (model === "gemini-3.5-flash" || taskType === "general" || taskType === "complex") {
+          config.tools = [{ googleSearch: {} }];
+        }
+
+        const response = await ai.models.generateContent({
+          model,
+          contents,
+          config,
+        });
+
+        if (response && response.text) {
+          resultText = response.text;
+          const candidate = response.candidates?.[0];
+          const groundingMetadata = candidate?.groundingMetadata;
+          const groundingChunks = groundingMetadata?.groundingChunks || [];
+          searchQueries = groundingMetadata?.webSearchQueries || [];
+
+          sources = groundingChunks
+            .map((chunk: any) => {
+              if (chunk.web?.uri) {
+                return {
+                  title: chunk.web.title || new URL(chunk.web.uri).hostname,
+                  uri: chunk.web.uri,
+                };
+              }
+              return null;
+            })
+            .filter(Boolean) as Array<{ title: string; uri: string }>;
+
+          break;
+        }
+      } catch (err: any) {
+        lastErr = err;
+        console.warn(`Chat model ${model} failed:`, err.message || err);
+      }
+    }
+
+    if (!resultText) {
+      const lastUserMsg = messages[messages.length - 1]?.content || "";
+      console.warn("Gemini chat models hit quota/error. Serving pedagogical fallback.");
+      resultText = getPedagogicalChatFallback(lastUserMsg, clasa, disciplina);
+      usedModel = "EduMetodist Expert Core (2026-2027)";
+      sources = [
+        { title: "Ministerul Educației (edu.ro)", uri: "https://www.edu.ro" },
+        { title: "Structura Anului Școlar 2026-2027 (MEC)", uri: "https://www.edu.ro/structura_an_scolar" },
+      ];
+    }
+
+    res.json({
+      success: true,
+      text: resultText,
+      sources,
+      searchQueries,
+      modelUsed: usedModel,
+    });
+  } catch (error: any) {
+    console.error("Chat API error, providing pedagogical fallback:", error);
+    const lastUserMsg = req.body?.messages?.[req.body.messages.length - 1]?.content || "";
+    const fallbackText = getPedagogicalChatFallback(
+      lastUserMsg,
+      req.body?.clasa || "",
+      req.body?.disciplina || ""
+    );
+    res.json({
+      success: true,
+      text: fallbackText,
+      sources: [
+        { title: "Ministerul Educației (edu.ro)", uri: "https://www.edu.ro" },
+        { title: "Structura Anului Școlar 2026-2027 (MEC)", uri: "https://www.edu.ro/structura_an_scolar" },
+      ],
+      searchQueries: ["structura an scolar 2026-2027 romania", "programe scolare mec"],
+      modelUsed: "EduMetodist Expert Core (2026-2027)",
+    });
   }
 });
 

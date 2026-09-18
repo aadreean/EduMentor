@@ -1,12 +1,13 @@
 import React from "react";
-import { GraduationCap, Calendar, Sparkles, Facebook, Youtube } from "lucide-react";
+import { GraduationCap, Calendar, Sparkles, Facebook, Youtube, MessageSquare } from "lucide-react";
 
 interface HeaderProps {
   onOpenCalendar: () => void;
   onLoadSample: () => void;
+  onOpenChat: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ onOpenCalendar, onLoadSample }) => {
+export const Header: React.FC<HeaderProps> = ({ onOpenCalendar, onLoadSample, onOpenChat }) => {
   return (
     <header className="bg-white border-b border-[#E2E8F0] sticky top-0 z-30 shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
@@ -55,6 +56,17 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCalendar, onLoadSample }) 
           >
             <Calendar className="w-3.5 h-3.5 mr-1.5 text-slate-600" />
             <span className="hidden md:inline">Calendar</span> 2026-2027
+          </button>
+
+          <button
+            onClick={onOpenChat}
+            id="btn-open-chat-header"
+            type="button"
+            className="btn-interaction inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded-lg text-[#0D9488] bg-[#F0FDFA] hover:bg-[#CCFBF1] border border-[#99F6E4] shadow-xs cursor-pointer"
+            title="Deschide Asistentul Metodist & Căutare Google Search"
+          >
+            <MessageSquare className="w-3.5 h-3.5 mr-1.5 text-[#0D9488]" />
+            <span className="hidden sm:inline">Asistent &</span> Căutare Edu
           </button>
 
           <div className="flex items-center space-x-1.5 sm:space-x-2 pl-1 sm:pl-2 border-l border-slate-200">

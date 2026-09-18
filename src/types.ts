@@ -12,6 +12,22 @@ export interface FilePayload {
   textSnippet?: string;
 }
 
+export interface GroundingSource {
+  title: string;
+  uri: string;
+}
+
+export interface AssistantChatMessage {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+  timestamp: string;
+  sources?: GroundingSource[];
+  searchQueries?: string[];
+  modelUsed?: string;
+  taskType?: "fast" | "general" | "complex";
+}
+
 export interface ChatMessage {
   id: string;
   role: "user" | "assistant";

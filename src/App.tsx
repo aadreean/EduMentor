@@ -12,11 +12,13 @@ import { TechnicalHeaderSection } from "./components/TechnicalHeaderSection";
 import { FileUploadSection } from "./components/FileUploadSection";
 import { TypologyAndGenerateSection } from "./components/TypologyAndGenerateSection";
 import { PreviewHall } from "./components/PreviewHall";
+import { EduChatAssistant } from "./components/EduChatAssistant";
 import { ChatMessage, DocumentType, FilePayload, TechnicalHeaderData } from "./types";
 import { SAMPLE_PACKS, STANDARD_TEMPLATES } from "./data/curriculumData";
 
 export default function App() {
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   // Parametrii didactici primari
   const [clasa, setClasa] = useState("Clasa a VII-a");
@@ -271,6 +273,7 @@ MANDAT STRICT: Este obligatoriu să generezi atât antetul tehnic oficial comple
       <Header
         onOpenCalendar={() => setIsCalendarOpen(true)}
         onLoadSample={() => handleLoadSampleData(0)}
+        onOpenChat={() => setIsChatOpen(true)}
       />
 
       <main className="flex-1 max-w-6xl w-full mx-auto p-3 sm:p-6 space-y-6">
@@ -359,6 +362,15 @@ MANDAT STRICT: Este obligatoriu să generezi atât antetul tehnic oficial comple
       <AcademicCalendarModal
         isOpen={isCalendarOpen}
         onClose={() => setIsCalendarOpen(false)}
+      />
+
+      {/* Asistent Metodist Multi-turn Chatbot & Căutare Google Search */}
+      <EduChatAssistant
+        isOpen={isChatOpen}
+        onClose={() => setIsChatOpen(false)}
+        onOpen={() => setIsChatOpen(true)}
+        clasa={clasa}
+        disciplina={disciplina || headerData.disciplina}
       />
     </div>
   );
