@@ -1,5 +1,5 @@
 import React from "react";
-import { School, UserCheck, Clock, BookOpen, User, ShieldCheck } from "lucide-react";
+import { School, UserCheck, Clock, BookOpen, User, ShieldCheck, GraduationCap } from "lucide-react";
 import { TechnicalHeaderData } from "../types";
 
 interface TechnicalHeaderSectionProps {
@@ -84,16 +84,21 @@ export const TechnicalHeaderSection: React.FC<TechnicalHeaderSectionProps> = ({
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-[#1E293B] mb-1.5">
-              Disciplina de studiu *
-            </label>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="block text-xs font-semibold text-[#1E293B]">
+                Disciplina de studiu *
+              </label>
+            </div>
             <input
               type="text"
               value={headerData.disciplina || disciplina}
               onChange={(e) => handleFieldChange("disciplina", e.target.value)}
-              placeholder="ex: Limba și literatura română / Limba engleză"
+              placeholder="ex: Limba și literatura română / CLR, MEM, DP"
               className="w-full px-3.5 py-2.5 bg-[#F8FAF9] border border-[#E2E8F0] rounded-xl text-xs sm:text-sm text-[#1E293B] placeholder-slate-400 focus:outline-hidden focus:ring-2 focus:ring-[#0D9488]/30 focus:border-[#0D9488] focus:bg-white transition-all duration-150"
             />
+            <p className="text-[11px] text-[#0D9488] font-medium mt-1 leading-snug">
+              💡 Pentru ciclul primar, introduceți disciplinele integrate (ex: CLR, MEM, DP)
+            </p>
           </div>
 
           <div>
@@ -104,9 +109,105 @@ export const TechnicalHeaderSection: React.FC<TechnicalHeaderSectionProps> = ({
               type="text"
               value={headerData.clasa || clasa}
               onChange={(e) => handleFieldChange("clasa", e.target.value)}
-              placeholder="ex: Clasa a VII-a / Clasa a XII-a A"
+              placeholder="ex: Clasa a VII-a / Clasa a XI-a A / Clasa I"
               className="w-full px-3.5 py-2.5 bg-[#F8FAF9] border border-[#E2E8F0] rounded-xl text-xs sm:text-sm text-[#1E293B] placeholder-slate-400 focus:outline-hidden focus:ring-2 focus:ring-[#0D9488]/30 focus:border-[#0D9488] focus:bg-white transition-all duration-150"
             />
+          </div>
+        </div>
+
+        {/* Detalii curriculare (Liceu) dispuse ergonomic sub câmpul Clasa */}
+        <div className="bg-[#F8FAF9] rounded-xl p-3.5 sm:p-4 border border-[#E2E8F0] space-y-2.5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+            <div className="flex items-center space-x-2">
+              <GraduationCap className="w-4 h-4 text-[#0D9488]" />
+              <span className="text-xs font-bold text-[#1E293B]">
+                Detalii curriculare liceu (Filieră • Profil • Specializare)
+              </span>
+              <span className="text-[11px] text-slate-400 font-normal">
+                (opțional - se integrează automat în antet sub clasă)
+              </span>
+            </div>
+            <span className="text-[11px] text-slate-500 italic">
+              Ex: {headerData.clasa || clasa || "Clasa a XI-a"} | Filiera teoretică, Profil umanist, Specializarea filologie
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+            {/* Filiera */}
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                Filiera
+              </label>
+              <input
+                type="text"
+                list="filiere-optiuni"
+                value={headerData.filiera || ""}
+                onChange={(e) => handleFieldChange("filiera", e.target.value)}
+                placeholder="ex: Teoretică / Vocațională"
+                className="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-lg text-xs text-[#1E293B] placeholder-slate-400 focus:outline-hidden focus:ring-2 focus:ring-[#0D9488]/30 focus:border-[#0D9488] transition-all"
+              />
+              <datalist id="filiere-optiuni">
+                <option value="Teoretică" />
+                <option value="Tehnologică" />
+                <option value="Vocațională" />
+              </datalist>
+            </div>
+
+            {/* Profilul */}
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                Profilul
+              </label>
+              <input
+                type="text"
+                list="profiluri-optiuni"
+                value={headerData.profil || ""}
+                onChange={(e) => handleFieldChange("profil", e.target.value)}
+                placeholder="ex: Umanist / Real / Tehnic"
+                className="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-lg text-xs text-[#1E293B] placeholder-slate-400 focus:outline-hidden focus:ring-2 focus:ring-[#0D9488]/30 focus:border-[#0D9488] transition-all"
+              />
+              <datalist id="profiluri-optiuni">
+                <option value="Umanist" />
+                <option value="Real" />
+                <option value="Tehnic" />
+                <option value="Servicii" />
+                <option value="Resurse naturale și protecția mediului" />
+                <option value="Artistic" />
+                <option value="Sportiv" />
+                <option value="Pedagogic" />
+                <option value="Teologic" />
+                <option value="Militar" />
+              </datalist>
+            </div>
+
+            {/* Specializarea */}
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                Specializarea
+              </label>
+              <input
+                type="text"
+                list="specializari-optiuni"
+                value={headerData.specializare || ""}
+                onChange={(e) => handleFieldChange("specializare", e.target.value)}
+                placeholder="ex: Filologie / Științe ale naturii"
+                className="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-lg text-xs text-[#1E293B] placeholder-slate-400 focus:outline-hidden focus:ring-2 focus:ring-[#0D9488]/30 focus:border-[#0D9488] transition-all"
+              />
+              <datalist id="specializari-optiuni">
+                <option value="Filologie" />
+                <option value="Științe sociale" />
+                <option value="Matematică-informatică" />
+                <option value="Științe ale naturii" />
+                <option value="Economic" />
+                <option value="Comerț" />
+                <option value="Turism și alimentație" />
+                <option value="Informatică" />
+                <option value="Muzică" />
+                <option value="Arte plastice și decorative" />
+                <option value="Învățător-educatoare" />
+                <option value="Teologie ortodoxă" />
+              </datalist>
+            </div>
           </div>
         </div>
 

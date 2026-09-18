@@ -1,5 +1,5 @@
 import React from "react";
-import { Calendar, FileSpreadsheet, BookOpen, Sparkles, Loader2, ArrowDown } from "lucide-react";
+import { Calendar, FileSpreadsheet, BookOpen, Layers, Sparkles, Loader2, ArrowDown } from "lucide-react";
 import { DocumentType } from "../types";
 
 interface TypologyAndGenerateSectionProps {
@@ -56,8 +56,8 @@ export const TypologyAndGenerateSection: React.FC<TypologyAndGenerateSectionProp
         </button>
       </div>
 
-      {/* Selector Tipologie Didactică - 3 Carduri Mari */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {/* Selector Tipologie Didactică - 4 Carduri Mari */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Opțiunea 1: Planificare Anuală */}
         <button
           type="button"
@@ -180,6 +180,48 @@ export const TypologyAndGenerateSection: React.FC<TypologyAndGenerateSectionProp
               }`}
             >
               Scenariu didactic pe etape, activitatea profesorului/elevilor, strategii și evaluare.
+            </p>
+          </div>
+        </button>
+
+        {/* Opțiunea 4: Planificare Integrată (Primar) */}
+        <button
+          type="button"
+          onClick={() => setTipDocument("Planificare integrată (Primar)")}
+          className={`btn-interaction p-4 rounded-xl border text-left flex flex-col justify-between transition-all duration-200 cursor-pointer ${
+            tipDocument === "Planificare integrată (Primar)"
+              ? "bg-[#0D9488] text-white border-[#0D9488] shadow-md ring-2 ring-[#0D9488]/20"
+              : "bg-[#F8FAF9] text-[#1E293B] border-[#E2E8F0] hover:border-[#0D9488] hover:bg-[#F0FDFA]"
+          }`}
+        >
+          <div className="flex items-center justify-between w-full mb-2">
+            <div
+              className={`p-2 rounded-lg ${
+                tipDocument === "Planificare integrată (Primar)"
+                  ? "bg-white/20 text-white"
+                  : "bg-white text-[#0D9488] shadow-2xs"
+              }`}
+            >
+              <Layers className="w-5 h-5" />
+            </div>
+            <span
+              className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${
+                tipDocument === "Planificare integrată (Primar)"
+                  ? "bg-white/25 text-white"
+                  : "bg-slate-200 text-slate-700"
+              }`}
+            >
+              Ciclul Primar
+            </span>
+          </div>
+          <div>
+            <h3 className="font-bold text-sm sm:text-base">Planificare Integrată (Primar)</h3>
+            <p
+              className={`text-xs mt-1 leading-relaxed ${
+                tipDocument === "Planificare integrată (Primar)" ? "text-teal-50" : "text-slate-500"
+              }`}
+            >
+              Abordare transdisciplinară (CLR, MEM, AVAP, DP) pe unități tematice
             </p>
           </div>
         </button>

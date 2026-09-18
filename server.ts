@@ -34,16 +34,16 @@ DACĂ RĂSPUNSUL TĂU CONȚINE DOAR ANTETUL FĂRĂ TABEL, ESTE CONSIDERAT EȘUAT
 
 2. COORDONATE TEHNICE ȘI ANTET OFICIAL:
 Orice document generat va începe obligatoriu cu antetul tehnic oficial completat pe două coloane, preluând variabilele introduse de utilizator:
-- Stânga: Unitatea de învățământ, Anul școlar (2026-2027), Disciplina, Manualul/suportul didactic, Clasa, Numărul de ore pe săptămână, Numele profesorului, Săptămâna vacanței din februarie (județeană).
+- Stânga: Unitatea de învățământ, Anul școlar (2026-2027), Disciplina (sau disciplinele integrate), Manualul/suportul didactic, Clasa (cu detaliile curriculare de liceu incluse dacă au fost specificate, ex: „Clasa a XI-a | Filiera teoretică, Profil umanist, Specializarea filologie”), Numărul de ore pe săptămână, Numele profesorului, Săptămâna vacanței din februarie (județeană).
 - Dreapta: Viza directorului, Avizul responsabilului de catedră, Numărul de înregistrare.
 - Centrat (sub antet): Titlul oficial al documentului cu majuscule.
 
 Exemplu format de redare Markdown:
 **Unitatea de învățământ:** [Nume Școală]                  **Avizat director:** [Nume Director]
 **Anul școlar:** 2026-2027                                  **Avizat resp. catedră:** [Nume Responsabil]
-**Disciplina:** [Nume Disciplină]                          **Nr. înregistrare:** [Nr. înregistrare sau .......................]
+**Disciplina:** [Nume Disciplină sau Discipline Integrate]  **Nr. înregistrare:** [Nr. înregistrare sau .......................]
 **Manual/Suport:** [Nume Manual/Suport]                    **Vacanță februarie (județeană):** [Săptămâna X (ex: 22 - 28 Februarie 2027)]
-**Clasa:** [Clasa]
+**Clasa:** [Clasa sau Clasa | Filiera X, Profil Y, Specializarea Z]
 **Nr. de ore pe săptămână:** [Nr. ore]
 **Profesor:** [Nume Profesor]
 
@@ -69,6 +69,12 @@ C) PROIECT DIDACTIC DE LECȚIE:
    | Etape ale lecţiei | Obiective | Timp (min) | Activitatea profesorului | Activitatea elevilor | Strategii & Metode | Resurse și Forme de organizare | Evaluare |
    V. Tabel 1. Instrumente digitale utilizate
    VI. Tabel 2. Resurse digitale de conținut utilizate
+
+D) PLANIFICARE INTEGRATĂ PENTRU ÎNVĂȚĂMÂNTUL PRIMAR:
+   - Abordare transdisciplinară specifică învățământului primar (CLR, MEM, AVAP, DP, MM etc.) pe unități tematice.
+   - Grupează competențele din programele multiple încărcate sub o Temă Integratoare comună.
+   - Tabel Markdown cu EXACT rubricile oficiale:
+   | Tema Unității | Discipline integrate | Competențe Specifice | Conținuturi | Nr. Ore | Săptămâna |
 
 4. STRUCTURA ANULUI ȘCOLAR 2026-2027:
 - Modulul 1: Luni, 7 septembrie 2026 - Vineri, 23 octombrie 2026 (7 săptămâni: S1 - S7). S5: Programul național „Mai Mult decât Școala altfel” (05.10 - 09.10.2026, fără predare conținut nou; 5 octombrie - Ziua Educației). Încheiere cu evaluare formativă în S7.
@@ -195,10 +201,25 @@ app.post("/api/generate", async (req, res) => {
     const totalAnnualHours = totalTeachingHours + totalSpecialHours;
     const totalWeeksAll = totalTeachingWeeks + 2;
 
+    // Formatează clasa cu detaliile curriculare de liceu dacă au fost completate
+    const curricularDetails: string[] = [];
+    if (headerData?.filiera?.trim()) {
+      curricularDetails.push(`Filiera ${headerData.filiera.trim().toLowerCase()}`);
+    }
+    if (headerData?.profil?.trim()) {
+      curricularDetails.push(`Profil ${headerData.profil.trim().toLowerCase()}`);
+    }
+    if (headerData?.specializare?.trim()) {
+      curricularDetails.push(`Specializarea ${headerData.specializare.trim().toLowerCase()}`);
+    }
+    const baseClasa = clasa || headerData?.clasa || "";
+    const clasaFormatted =
+      curricularDetails.length > 0 ? `${baseClasa} | ${curricularDetails.join(", ")}` : baseClasa;
+
     let contextDescription = `
 DIRECTIVĂ CRITICĂ ȘI INSTRUCȚIUNE OBLIGATORIE:
-- Clasa vizată: ${clasa}
-- Disciplina: ${disciplina || headerData.disciplina || "Limba modernă"}
+- Clasa vizată și detalii curriculare: ${clasaFormatted} (În antetul documentului, la rubrica Clasa, scrie obligatoriu exact: **Clasa:** ${clasaFormatted})
+- Disciplina / Disciplinele: ${disciplina || headerData.disciplina || "Limba modernă"}
 - Norma săptămânală: ${hoursPerWeek} ${hoursPerWeek === 1 ? "oră/săpt" : "ore/săpt"}
 - Tipul de document solicitat: ${tipDocument}
 - Anul școlar: 2026-2027
@@ -212,7 +233,7 @@ DIRECTIVĂ CRITICĂ ȘI INSTRUCȚIUNE OBLIGATORIE:
 ${prompt ? `Mesaj / instrucțiune utilizator: ${prompt}\n` : ""}
 
 ESTE OBLIGATORIU SĂ GENEREZI ÎNTREGUL TABEL CURRICULAR COMPLET IMEDIAT SUB ANTET!
-NU TE OPRI DOAR LA ANTET! Include fără excepție toate cele 5 module și toate cele 36 de săptămâni!
+NU TE OPRI DOAR LA ANTET!
 `;
 
     if (tipDocument === "Planificare anuală") {
@@ -231,6 +252,17 @@ După tabel, adaugă Notă metodologică de bilanț orar:
 * Total ore săptămâni speciale: ${totalSpecialHours} ore
 * Total general normă: ${totalAnnualHours} ore
 * Semnătura curriculară: autor prof. Adrian Podar
+`;
+    } else if (
+      tipDocument === "Planificare integrată (Primar)" ||
+      tipDocument.toLowerCase().includes("integrat")
+    ) {
+      contextDescription += `
+GENEREAZĂ UN TABEL DE PLANIFICARE INTEGRATĂ PENTRU ÎNVĂȚĂMÂNTUL PRIMAR:
+- Grupează competențele din programele multiple încărcate sub o Temă Integratoare comună, cu rubricile:
+  | Tema Unității | Discipline integrate | Competențe Specifice | Conținuturi | Nr. Ore | Săptămâna |
+- Abordare transdisciplinară specifică învățământului primar (de ex: CLR - Comunicare în limba română, MEM - Matematică și explorarea mediului, AVAP - Arte vizuale și abilități practice, DP - Dezvoltare personală, MM - Muzică și mișcare).
+- Corelează competențele din toate programele încărcate pe unități tematice coerente, distribuite pe modulele anului școlar 2026-2027 (inclusiv S5 Școala altfel și S29 Săptămâna verde).
 `;
     } else if (tipDocument === "Schiță de lecție") {
       contextDescription += `

@@ -255,6 +255,26 @@ export const STANDARD_TEMPLATES: StandardTemplate[] = [
 | 2 | Fișă de lucru interactivă | Document PDF / Formular digital | Ghidarea investigației și exersarea competențelor | Profesorul de la clasă | Google Drive / Platformă | CC BY-NC-SA 4.0 | https://drive.google.com |
 | 3 | Prezentare multimedia suport | Prezentare Canva / Google Slides | Suport vizual pentru explicarea conceptelor cheie | Profesorul | Canva Educațional | Gratuită educațională | https://canva.com |`,
   },
+  {
+    id: "sablon-planificare-integrata",
+    title: "Planificare Integrată - Ciclul Primar (Abordare Transdisciplinară)",
+    category: "Planificare integrată (Primar)",
+    description:
+      "Tabel normat pentru învățământul primar pe unități tematice integratoare: CLR, MEM, AVAP, DP, MM.",
+    columns: [
+      "Tema Unității",
+      "Discipline integrate",
+      "Competențe Specifice",
+      "Conținuturi",
+      "Nr. Ore",
+      "Săptămâna",
+    ],
+    content: `| Tema Unității | Discipline integrate | Competențe Specifice | Conținuturi | Nr. Ore | Săptămâna |
+|---|---|---|---|---|---|
+| **Unitatea tematică 1: Din nou la școală! Universul meu** | • CLR (Comunicare în limba română)<br>• MEM (Matematică și explorarea mediului)<br>• DP (Dezvoltare personală)<br>• AVAP (Arte vizuale și abilități practice) | **CLR:** 1.1, 1.2, 2.1<br>**MEM:** 1.1, 3.1, 5.1<br>**DP:** 1.1, 2.2<br>**AVAP:** 1.1, 2.2 | • **CLR:** Cartea, textul, enunțul; formule de salut și dialog de prezentare<br>• **MEM:** Numerele naturale 0-100 (recunoaștere, comparare, ordonare); mediul școlar și orientarea spațială<br>• **DP:** Reguli de conviețuire în clasă, emoții de început de an<br>• **AVAP:** Realizarea ecusonului personal și a colajului „Clasa noastră prietenoasă” | CLR: 7h<br>MEM: 4h<br>DP: 2h<br>AVAP: 2h<br>**Total: 15h** | S1 - S3 (Modulul 1) |
+| **Unitatea tematică 2: Culorile toamnei și secretele naturii** | • CLR<br>• MEM<br>• AVAP<br>• MM (Muzică și mișcare) | **CLR:** 1.3, 2.2, 3.1<br>**MEM:** 1.2, 3.1, 4.1<br>**AVAP:** 1.2, 2.3<br>**MM:** 2.1, 3.1 | • **CLR:** Textul narativ scurt despre toamnă, sunete și litere, propoziția<br>• **MEM:** Operații de adunare și scădere fără trecere peste ordin; transformări în natură, frunze, semințe, fenomene meteo<br>• **AVAP:** Colaj cu frunze presate, pictură în acuarelă pe texturi vegetale<br>• **MM:** Cântece de toamnă, acompaniament ritmic | CLR: 6h<br>MEM: 5h<br>AVAP: 2h<br>MM: 2h<br>**Total: 15h** | S4 - S6 (Modulul 1) |
+| **Programul Național „Mai Mult decât Școala altfel”** | Toate disciplinele integrate transdisciplinar | Competențe civice, socio-emoționale și practice | Activități tematice extracurriculare, vizite educative, ateliere de creație | 20h | S5 (Modulul 1) |`,
+  },
 ];
 
 export const SAMPLE_PACKS: SamplePack[] = [
@@ -375,5 +395,36 @@ Mijloace didactice integrate: Fragment ecranizare video, padlet colaborativ pent
 - Writing: Informal email / profile presentation.
 - Word Focus: resilient, open-minded, peer pressure, identity crisis.`,
     sablonSnippet: STANDARD_TEMPLATES[1].content,
+  },
+  {
+    id: "primar-integrat-2",
+    name: "Planificare Integrată - Clasa a II-a (CLR, MEM, DP, AVAP)",
+    disciplina: "Discipline integrate (CLR, MEM, DP, AVAP)",
+    clasa: "Clasa a II-a",
+    oreSaptamana: 15,
+    tipDocument: "Planificare integrată (Primar)",
+    programaSnippet: `PROGRAME ȘCOLARE CICLUL PRIMAR (CLASA A II-A):
+• CLR (Comunicare în limba română):
+1.1. Identificarea semnificaţiei unui mesaj oral pe teme familiare.
+1.2. Identificarea unor informaţii variate dintr-un mesaj scurt.
+2.1. Formularea unor enunţuri proprii în situaţii concrete de comunicare.
+3.1. Citirea unor mesaje scrise, întâlnite în mediul cunoscut.
+• MEM (Matematică și explorarea mediului):
+1.1. Scrierea, citirea şi formarea numerelor naturale până la 1000.
+1.2. Compararea şi ordonarea numerelor naturale.
+3.1. Rezolvarea de probleme cu operaţii matematice simple.
+4.1. Observarea şi descrierea unor corpuri, fenomene şi relaţii din mediul înconjurător.
+• DP (Dezvoltare personală):
+1.1. Prezentarea unor trăsături personale elementare.
+2.1. Exprimarea emoţiilor de bază în raport cu situaţii cunoscute.
+• AVAP (Arte vizuale și abilități practice):
+1.1. Sesizarea semnificaţiei unui mesaj vizual simplu.
+2.2. Realizarea de creaţii funcţionale şi/sau estetice folosind materiale diverse.`,
+    suportSnippet: `GHID DIDACTIC ȘI MANUALE APROBATE PENTRU CLASA A II-A:
+Unitatea Tematică 1: „Universul prieteniei și al școlii”
+- Teme integrate: Reguli de clasă (DP), textul narativ scurt despre colegialitate (CLR), numerele naturale și operații cu obiecte din clasă (MEM), desen și colaj (AVAP).
+Unitatea Tematică 2: „Secretele toamnei aurii”
+- Teme integrate: Povești și legende despre toamnă (CLR), schimbările din natură, culesul roadelor și măsurători (MEM), confecționarea unui ierbar și tablouri vegetale (AVAP).`,
+    sablonSnippet: STANDARD_TEMPLATES[3].content,
   },
 ];

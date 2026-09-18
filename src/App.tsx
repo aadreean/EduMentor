@@ -84,6 +84,8 @@ export default function App() {
           ? "Liceul Teoretic „Grigore Moisil”"
           : sample.id === "istorie-8"
           ? "Școala Gimnazială Nr. 192"
+          : sample.id === "primar-integrat-2"
+          ? "Școala Gimnazială „Ion Creangă”"
           : "Colegiul Național „Mihai Viteazul”",
       anScolar: "2026-2027",
       disciplina: sample.disciplina,
@@ -92,8 +94,13 @@ export default function App() {
           ? "Cambridge B1+/B2 Advance"
           : sample.id === "istorie-8"
           ? "Manual Istorie Ed. Litera"
+          : sample.id === "primar-integrat-2"
+          ? "Ghid integrat și manuale EDP"
           : "Manual Ed. Art Klett",
       clasa: sample.clasa,
+      filiera: sample.id === "engleza-9" ? "Teoretică" : "",
+      profil: sample.id === "engleza-9" ? "Umanist" : "",
+      specializare: sample.id === "engleza-9" ? "Filologie" : "",
       nrOreSaptamana: `${sample.oreSaptamana} ore/săpt.`,
       profesor:
         sample.id === "engleza-9"
@@ -103,7 +110,11 @@ export default function App() {
           : "Prof. Adrian Podar",
       director: "Prof. dr. Popescu Ion",
       respCatedra:
-        sample.id === "engleza-9" ? "Prof. Brown Sarah" : "Prof. Georgescu Elena",
+        sample.id === "engleza-9"
+          ? "Prof. Brown Sarah"
+          : sample.id === "primar-integrat-2"
+          ? "Prof. Munteanu Carmen"
+          : "Prof. Georgescu Elena",
       nrInregistrare: ".......................",
       vacantaFebruarie: "Săptămâna 2 (22 - 28 Februarie 2027)",
       isComplete: true,
@@ -122,6 +133,8 @@ export default function App() {
         ? "sablon-schita-lectie"
         : sample.tipDocument === "Planificare pe unitate"
         ? "sablon-unitate"
+        : sample.tipDocument === "Planificare integrată (Primar)"
+        ? "sablon-planificare-integrata"
         : "sablon-anual-oficial"
     );
 

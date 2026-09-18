@@ -1,7 +1,8 @@
 export type DocumentType =
   | "Planificare anuală"
   | "Planificare pe unitate"
-  | "Schiță de lecție";
+  | "Schiță de lecție"
+  | "Planificare integrată (Primar)";
 
 export interface FilePayload {
   name: string;
@@ -58,6 +59,40 @@ export interface TechnicalHeaderData {
   nrInregistrare?: string;
   vacantaFebruarie?: string;
   isComplete: boolean;
+  // Detalii curriculare liceu:
+  filiera?: string;
+  profil?: string;
+  specializare?: string;
+}
+
+/**
+ * Formatează denumirea clasei cu detaliile curriculare de liceu:
+ * ex: „Clasa a XI-a | Filiera teoretică, Profil umanist, Specializarea filologie”
+ */
+export function formatClasaHeader(
+  clasa: string,
+  headerData?: {
+    filiera?: string;
+    profil?: string;
+    specializare?: string;
+  }
+): string {
+  const parts: string[] = [];
+  if (headerData?.filiera?.trim()) {
+    parts.push(`Filiera ${headerData.filiera.trim().toLowerCase()}`);
+  }
+  if (headerData?.profil?.trim()) {
+    parts.push(`Profil ${headerData.profil.trim().toLowerCase()}`);
+  }
+  if (headerData?.specializare?.trim()) {
+    parts.push(`Specializarea ${headerData.specializare.trim().toLowerCase()}`);
+  }
+
+  const baseClasa = clasa?.trim() || "";
+  if (parts.length > 0) {
+    return `${baseClasa} | ${parts.join(", ")}`;
+  }
+  return baseClasa;
 }
 
 export interface SamplePack {

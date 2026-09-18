@@ -15,7 +15,7 @@ import {
   Facebook,
   Youtube,
 } from "lucide-react";
-import { ChatMessage, DocumentType, TechnicalHeaderData } from "../types";
+import { ChatMessage, DocumentType, TechnicalHeaderData, formatClasaHeader } from "../types";
 import { copyTableToClipboard, exportWordDocument } from "../utils/fileHelpers";
 
 interface PreviewHallProps {
@@ -132,7 +132,11 @@ export const PreviewHall: React.FC<PreviewHallProps> = ({
         ? "PLANIFICARE ANUALĂ - ANUL ȘCOLAR 2026-2027"
         : tipDocument === "Planificare pe unitate"
         ? "PLANIFICARE PE UNITĂȚI DE ÎNVĂȚARE - ANUL ȘCOLAR 2026-2027"
+        : tipDocument === "Planificare integrată (Primar)"
+        ? "PLANIFICARE INTEGRATĂ (CICLUL PRIMAR) - ANUL ȘCOLAR 2026-2027"
         : "PROIECT DE LECȚIE";
+
+    const clasaFormatted = formatClasaHeader(headerData.clasa || clasa, headerData);
 
     return `
 <div style="display: flex; justify-content: space-between; margin-bottom: 20px; font-size: 11pt;">
@@ -141,7 +145,7 @@ export const PreviewHall: React.FC<PreviewHallProps> = ({
     <p><strong>Anul școlar:</strong> 2026-2027</p>
     <p><strong>Disciplina:</strong> ${headerData.disciplina || "[Nume Disciplină]"}</p>
     <p><strong>Manual/Suport:</strong> ${headerData.manualSuport || "[Nume Manual]"}</p>
-    <p><strong>Clasa:</strong> ${headerData.clasa || "[Clasa]"}</p>
+    <p><strong>Clasa:</strong> ${clasaFormatted || "[Clasa]"}</p>
     <p><strong>Nr. de ore pe săptămână:</strong> ${headerData.nrOreSaptamana || `${oreSaptamana} ore/săpt.`}</p>
     <p><strong>Profesor:</strong> ${headerData.profesor || "[Nume Profesor]"}</p>
   </div>
