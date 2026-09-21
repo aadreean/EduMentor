@@ -174,13 +174,42 @@ export async function extractTextSnippet(file: File): Promise<string> {
   });
 }
 
-export function exportWordDocument(filename: string, content: string, title: string = "Document Didactic") {
+export function exportWordDocument(
+  filename: string,
+  content: string,
+  title: string = "Document Didactic",
+  orientation: "landscape" | "portrait" = "landscape"
+) {
+  const isLandscape = orientation === "landscape";
+  const pageSize = isLandscape ? "297mm 210mm" : "210mm 297mm";
+  const msoOrientation = isLandscape ? "landscape" : "portrait";
+
   const htmlDoc = `
     <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
     <head>
       <meta charset='utf-8'>
       <title>${title}</title>
+      <!--[if gte mso 9]>
+      <xml>
+        <w:WordDocument>
+          <w:View>Print</w:View>
+          <w:Zoom>100</w:Zoom>
+          <w:DoNotOptimizeForBrowser/>
+        </w:WordDocument>
+      </xml>
+      <![endif]-->
       <style>
+        @page Section1 {
+          size: ${pageSize};
+          mso-page-orientation: ${msoOrientation};
+          margin: 12mm 15mm 12mm 15mm;
+          mso-header-margin: 35.4pt;
+          mso-footer-margin: 35.4pt;
+          mso-paper-source: 0;
+        }
+        div.Section1 {
+          page: Section1;
+        }
         body { font-family: 'Times New Roman', Cambria, Georgia, serif; font-size: 11pt; color: #000; line-height: 1.4; }
         h1, h2, h3 { text-align: center; margin: 16px 0 10px 0; font-weight: bold; }
         p { margin: 4px 0; }
@@ -192,7 +221,9 @@ export function exportWordDocument(filename: string, content: string, title: str
       </style>
     </head>
     <body>
-      ${content}
+      <div class="Section1">
+        ${content}
+      </div>
     </body>
     </html>
   `;

@@ -64,6 +64,8 @@ export interface StandardTemplate {
   columns: string[];
 }
 
+export type PageOrientation = "portrait" | "landscape";
+
 export interface TechnicalHeaderData {
   unitateInvatamant: string;
   anScolar: string;
@@ -77,6 +79,8 @@ export interface TechnicalHeaderData {
   nrInregistrare?: string;
   vacantaFebruarie?: string;
   isComplete: boolean;
+  // Format pagină / orientare A4:
+  orientare?: PageOrientation;
   // Detalii curriculare liceu:
   filiera?: string;
   profil?: string;

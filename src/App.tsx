@@ -67,11 +67,13 @@ export default function App() {
     setSelectedTemplateId(tmpl.id);
     setSablonText(tmpl.content);
     setTipDocument(tmpl.category);
+    const recommendedOrient = tmpl.category === "Schiță de lecție" ? "portrait" : "landscape";
+    setHeaderData((prev) => ({ ...prev, orientare: recommendedOrient }));
 
     const confirmationMsg: ChatMessage = {
       id: `tmpl-${Date.now()}`,
       role: "assistant",
-      content: `Am atașat șablonul standard oficial MEC: **${tmpl.title}**. Capul de tabel va fi respectat cu strictețe în format Markdown A4.`,
+      content: `Am atașat șablonul standard oficial MEC: **${tmpl.title}**. Formatul paginii A4 este presetat pe **${recommendedOrient === "portrait" ? "Portret (Vertical)" : "Landscape (Vedere)"}** conform tipului de document.`,
       timestamp: new Date().toLocaleTimeString("ro-RO", { hour: "2-digit", minute: "2-digit" }),
     };
     setMessages((prev) => [...prev, confirmationMsg]);
@@ -169,6 +171,8 @@ export default function App() {
     const activeClasa = clasa || headerData.clasa || "Clasa a VII-a";
     const activeNorma = Number(oreSaptamana) || 2;
 
+    let combinedSuportText = "";
+
     try {
       // Concatenează conținutul tuturor fișierelor din fiecare categorie înainte de trimitere
       const combinedProgramaText = [
@@ -181,7 +185,7 @@ export default function App() {
         .filter(Boolean)
         .join("\n\n");
 
-      const combinedSuportText = [
+      combinedSuportText = [
         suportText,
         ...suportFiles.map(
           (file, idx) =>
@@ -444,6 +448,9 @@ MANDAT STRICT: Este obligatoriu să generezi atât antetul tehnic oficial comple
           oreSaptamana={oreSaptamana}
           tipDocument={tipDocument}
           headerData={headerData}
+          onOrientationChange={(newOrient) =>
+            setHeaderData((prev) => ({ ...prev, orientare: newOrient }))
+          }
           onGenerate={handleGenerateClick}
           onLoadSampleData={() => handleLoadSampleData(0)}
         />

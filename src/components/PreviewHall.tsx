@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
@@ -21,8 +21,10 @@ import {
   X,
   Image as ImageIcon,
   FileCode,
+  RectangleVertical,
+  RectangleHorizontal,
 } from "lucide-react";
-import { ChatMessage, DocumentType, TechnicalHeaderData, FilePayload, formatClasaHeader } from "../types";
+import { ChatMessage, DocumentType, TechnicalHeaderData, FilePayload, PageOrientation, formatClasaHeader } from "../types";
 import { copyTableToClipboard, exportWordDocument, readFileAsBase64, extractTextSnippet } from "../utils/fileHelpers";
 import { sanitizeHtmlTags } from "../utils/sanitizeText";
 
@@ -36,6 +38,7 @@ interface PreviewHallProps {
   oreSaptamana: number;
   tipDocument: DocumentType;
   headerData: TechnicalHeaderData;
+  onOrientationChange?: (orientation: PageOrientation) => void;
   onGenerate: () => void;
   onLoadSampleData: () => void;
 }
@@ -50,6 +53,7 @@ export const PreviewHall: React.FC<PreviewHallProps> = ({
   oreSaptamana,
   tipDocument,
   headerData,
+  onOrientationChange,
   onGenerate,
 }) => {
   const [inputText, setInputText] = useState("");
@@ -57,6 +61,45 @@ export const PreviewHall: React.FC<PreviewHallProps> = ({
   const [attachedChatFiles, setAttachedChatFiles] = useState<FilePayload[]>([]);
   const previewContainerRef = useRef<HTMLDivElement>(null);
   const chatFileInputRef = useRef<HTMLInputElement>(null);
+
+  // Orientare pagină: implicit "portrait" pentru Proiect de lecție / Schiță de lecție, "landscape" pentru planificări
+  const isLessonPlan =
+    tipDocument === "Schiță de lecție" ||
+    tipDocument.toLowerCase().includes("lecție") ||
+    tipDocument.toLowerCase().includes("proiect");
+
+  const defaultOrientation: PageOrientation = isLessonPlan ? "portrait" : "landscape";
+
+  const [orientation, setOrientation] = useState<PageOrientation>(
+    headerData.orientare || defaultOrientation
+  );
+
+  const handleOrientationChange = (newOrientation: PageOrientation) => {
+    setOrientation(newOrientation);
+    onOrientationChange?.(newOrientation);
+  };
+
+  // Sincronizare automată dacă utilizatorul selectează un tip de document diferit
+  useEffect(() => {
+    if (headerData.orientare) {
+      setOrientation(headerData.orientare);
+    } else {
+      setOrientation(isLessonPlan ? "portrait" : "landscape");
+    }
+  }, [tipDocument, headerData.orientare, isLessonPlan]);
+
+  // Aplicare regulă CSS la nivel de pagină pentru print/PDF în funcție de orientare
+  useEffect(() => {
+    let styleEl = document.getElementById("dynamic-print-orientation");
+    if (!styleEl) {
+      styleEl = document.createElement("style");
+      styleEl.id = "dynamic-print-orientation";
+      document.head.appendChild(styleEl);
+    }
+    styleEl.innerHTML = `@media print { @page { size: A4 ${orientation} !important; margin: ${
+      orientation === "portrait" ? "12mm 15mm 12mm 15mm" : "10mm 12mm 10mm 12mm"
+    } !important; } }`;
+  }, [orientation]);
 
   // Check for multi-part modular annual plan (M1-M2 and M3-M5)
   const assistantMessagesWithTables = messages.filter(
@@ -112,24 +155,46 @@ export const PreviewHall: React.FC<PreviewHallProps> = ({
 
   const handleCopyText = () => {
     const contentToCopy = documentContent || generateInitialDraft();
-    const tableEl = document.getElementById("plan-table-content");
-    copyTableToClipboard(contentToCopy, tableEl?.innerHTML);
+    const docEl = document.getElementById("plan-table-content");
+    let cleanHtml = "";
+    if (docEl) {
+      const clone = docEl.cloneNode(true) as HTMLElement;
+      clone.querySelectorAll(".no-print, button, input").forEach((el) => el.remove());
+      cleanHtml = clone.innerHTML;
+    }
+    copyTableToClipboard(contentToCopy, cleanHtml);
     setCopiedText(true);
     setTimeout(() => setCopiedText(false), 2000);
   };
 
   const handlePrintPdf = () => {
-    // Uses the strict print CSS directly, bypassing iframe window.open restrictions
+    let styleEl = document.getElementById("dynamic-print-orientation");
+    if (!styleEl) {
+      styleEl = document.createElement("style");
+      styleEl.id = "dynamic-print-orientation";
+      document.head.appendChild(styleEl);
+    }
+    styleEl.innerHTML = `@media print { @page { size: A4 ${orientation} !important; margin: ${
+      orientation === "portrait" ? "12mm 15mm 12mm 15mm" : "10mm 12mm 10mm 12mm"
+    } !important; } }`;
     window.print();
   };
 
   const handleDownloadDocx = () => {
-    const filename = `${tipDocument.replace(/\s+/g, "_")}_${(headerData.disciplina || "disciplina").replace(/\s+/g, "_")}_${(headerData.clasa || "clasa").replace(/\s+/g, "_")}.doc`;
-    const contentHtml = document.getElementById("plan-table-content")?.innerHTML;
+    const orientSuf = orientation === "landscape" ? "Landscape" : "Portret";
+    const filename = `${tipDocument.replace(/\s+/g, "_")}_${(headerData.disciplina || "disciplina").replace(/\s+/g, "_")}_${(headerData.clasa || "clasa").replace(/\s+/g, "_")}_${orientSuf}.doc`;
+    const docEl = document.getElementById("plan-table-content");
+    let contentHtml = "";
+    if (docEl) {
+      const clone = docEl.cloneNode(true) as HTMLElement;
+      clone.querySelectorAll(".no-print, button, input").forEach((el) => el.remove());
+      contentHtml = clone.innerHTML;
+    }
     exportWordDocument(
       filename,
       contentHtml || documentContent || generateInitialDraft(),
-      `${tipDocument} - 2026-2027`
+      `${tipDocument} - 2026-2027`,
+      orientation
     );
   };
 
@@ -271,10 +336,10 @@ export const PreviewHall: React.FC<PreviewHallProps> = ({
       id="section-document-generat"
       className="card-lift bg-white rounded-2xl border border-[#E2E8F0] shadow-[0_2px_8px_rgba(0,0,0,0.03)] flex flex-col overflow-hidden"
     >
-      {/* 1. BARA SUPERIOARĂ CURĂȚATĂ - DOAR CELE 3 BUTOANE STRICT NECESARE */}
+      {/* 1. BARA SUPERIOARĂ - BUTOANE ACȚIUNE + SELECTOR ORIENTARE (PORTRET / LANDSCAPE) */}
       <div
         id="document-actions-bar"
-        className="p-4 sm:p-5 border-b border-[#E2E8F0] bg-white flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
+        className="p-4 sm:p-5 border-b border-[#E2E8F0] bg-white flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3.5"
       >
         <div className="flex items-center space-x-3">
           <div className="w-10 h-10 rounded-xl bg-[#F0FDFA] border border-[#CCFBF1] flex items-center justify-center text-[#0D9488] shrink-0">
@@ -289,17 +354,60 @@ export const PreviewHall: React.FC<PreviewHallProps> = ({
                 Documentul Didactic Generat
               </h2>
             </div>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Previzualizare A4 Landscape • Format oficial conform normelor MEC • autor prof. Adrian Podar
+            <p className="text-xs text-slate-500 mt-0.5 flex items-center gap-1.5 flex-wrap">
+              <span>Format A4 {orientation === "landscape" ? "Landscape (Vedere)" : "Portret (Vertical)"}</span>
+              <span>•</span>
+              <span>Norme metodice 2026-2027</span>
+              {isLessonPlan && (
+                <span className="text-[10px] text-[#0D9488] bg-[#F0FDFA] px-1.5 py-0.5 rounded border border-[#CCFBF1] font-medium">
+                  Recomandat Portret pentru proiecte de lecție
+                </span>
+              )}
+              {!isLessonPlan && (
+                <span className="text-[10px] text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200 font-medium">
+                  Recomandat Landscape pentru planificări
+                </span>
+              )}
             </p>
           </div>
         </div>
 
-        {/* CELE 3 BUTOANE STRICT NECESARE (Copiază Text, Printează PDF, Descarcă DOCX) */}
-        <div
-          className="self-start sm:self-auto items-center"
-          style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}
-        >
+        {/* CONTROALE ACȚIUNE: COMUTATOR ORIENTARE + BUTOANELE STRICT NECESARE */}
+        <div className="self-start lg:self-auto flex items-center flex-wrap gap-2.5">
+          {/* Buton comutator Orientare A4 (Portret / Landscape) */}
+          <div
+            id="orientation-toggle-group"
+            className="inline-flex items-center p-1 bg-slate-100 rounded-xl border border-slate-200"
+            title="Setează orientarea paginii A4: Landscape (tabele late) sau Portret (proiecte didactice)"
+          >
+            <button
+              type="button"
+              onClick={() => handleOrientationChange("portrait")}
+              id="btn-orientare-portrait"
+              className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1.5 transition-all cursor-pointer ${
+                orientation === "portrait"
+                  ? "bg-white text-[#0D9488] shadow-2xs font-bold border border-slate-200"
+                  : "text-slate-600 hover:text-slate-900"
+              }`}
+            >
+              <RectangleVertical className="w-3.5 h-3.5" />
+              <span>Portret</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => handleOrientationChange("landscape")}
+              id="btn-orientare-landscape"
+              className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1.5 transition-all cursor-pointer ${
+                orientation === "landscape"
+                  ? "bg-white text-[#0D9488] shadow-2xs font-bold border border-slate-200"
+                  : "text-slate-600 hover:text-slate-900"
+              }`}
+            >
+              <RectangleHorizontal className="w-3.5 h-3.5" />
+              <span>Landscape</span>
+            </button>
+          </div>
+
           {/* Buton 1: Copiază Text */}
           <button
             type="button"
@@ -327,7 +435,7 @@ export const PreviewHall: React.FC<PreviewHallProps> = ({
             onClick={handlePrintPdf}
             id="btn-print-pdf"
             className="btn-interaction px-3.5 py-2 border border-[#E2E8F0] hover:border-[#0D9488] hover:text-[#0D9488] bg-white text-xs font-semibold text-slate-700 rounded-xl flex items-center space-x-1.5 shadow-2xs cursor-pointer"
-            title="Tipărește direct sau salvează ca PDF în format Landscape"
+            title={`Tipărește direct sau salvează ca PDF în format ${orientation === "landscape" ? "Landscape" : "Portret"}`}
           >
             <Printer className="w-4 h-4 text-slate-500" />
             <span>Printează PDF</span>
@@ -339,7 +447,7 @@ export const PreviewHall: React.FC<PreviewHallProps> = ({
             onClick={handleDownloadDocx}
             id="btn-download-docx"
             className="btn-interaction px-3.5 py-2 bg-[#0D9488] hover:bg-[#0F766E] text-white text-xs font-bold rounded-xl flex items-center space-x-1.5 shadow-xs cursor-pointer"
-            title="Descarcă documentul compatibil cu Microsoft Word"
+            title={`Descarcă documentul compatibil cu Microsoft Word în format ${orientation === "landscape" ? "Landscape" : "Portret"}`}
           >
             <Download className="w-4 h-4 text-white" />
             <span>Descarcă .DOCX</span>
@@ -347,7 +455,7 @@ export const PreviewHall: React.FC<PreviewHallProps> = ({
         </div>
       </div>
 
-      {/* 2. ZONA CENTRALĂ DE PREVIZUALIZARE (A4 LANDSCAPE SIMULATION) */}
+      {/* 2. ZONA CENTRALĂ DE PREVIZUALIZARE (SIMULARE A4 PORTRET / LANDSCAPE) */}
       <div id="document-print-zone" className="bg-[#F8FAF9] overflow-x-auto">
         {!documentContent && !isLoading ? (
           /* Empty state discret cu padding minim; ascunde complet zona albă mare când nu există document */
@@ -360,7 +468,9 @@ export const PreviewHall: React.FC<PreviewHallProps> = ({
           <div className="p-4 sm:p-7">
             <div
               ref={previewContainerRef}
-              className="w-full max-w-5xl mx-auto bg-white rounded-xl border border-[#E2E8F0] p-6 sm:p-10 shadow-[0_1px_4px_rgba(0,0,0,0.03)] min-h-[520px] font-academic text-[#1E293B]"
+              className={`w-full mx-auto bg-white rounded-xl border border-[#E2E8F0] p-6 sm:p-10 shadow-[0_1px_4px_rgba(0,0,0,0.03)] min-h-[520px] font-academic text-[#1E293B] ${
+                orientation === "portrait" ? "max-w-4xl" : "max-w-6xl"
+              }`}
             >
               {isLoading ? (
                 <div className="py-24 flex flex-col items-center justify-center space-y-4 text-center animate-appear-smooth">
@@ -377,8 +487,16 @@ export const PreviewHall: React.FC<PreviewHallProps> = ({
                   </div>
                 </div>
               ) : (
-                <div id="plan-table-content" className="space-y-4 animate-appear-smooth">
-                  <div className="markdown-body font-academic text-xs sm:text-sm leading-relaxed overflow-x-auto">
+                <div className="space-y-4 animate-appear-smooth">
+                  {/* Containerul tabelului/documentului delimitat strict cu id="plan-table-content" */}
+                  <div
+                    id="plan-table-content"
+                    className={`markdown-body font-academic text-xs sm:text-sm leading-relaxed overflow-x-auto ${
+                      orientation === "portrait"
+                        ? "max-w-[780px] mx-auto p-4 sm:p-6 bg-white border border-slate-200/70 rounded-xl"
+                        : "w-full"
+                    }`}
+                  >
                     <Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
                       {sanitizeHtmlTags(documentContent)}
                     </Markdown>
@@ -412,7 +530,7 @@ export const PreviewHall: React.FC<PreviewHallProps> = ({
                     </div>
                   )}
 
-                  {/* Caseta de descărcare la final de document */}
+                  {/* Caseta de descărcare la final de document - STRICT EXTERIORĂ față de #plan-table-content */}
                   <div className="no-print mt-8 pt-6 border-t border-[#E2E8F0] bg-[#F8FAF9] -mx-6 sm:-mx-10 -mb-6 sm:-mb-10 p-6 rounded-b-xl flex flex-col gap-4">
                     <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                       <div className="flex items-center space-x-3">
@@ -420,14 +538,11 @@ export const PreviewHall: React.FC<PreviewHallProps> = ({
                           <FileText className="w-5 h-5" />
                         </div>
                         <div>
-                          <h4 className="text-xs font-bold text-slate-800 flex items-center gap-1.5 flex-wrap">
-                            <span>Documentul este redactat și pregătit pentru descărcare</span>
-                            <span className="text-[10px] text-[#0D9488] font-semibold bg-[#F0FDFA] px-2 py-0.5 rounded border border-[#CCFBF1]">
-                              autor prof. Adrian Podar
-                            </span>
+                          <h4 className="text-xs font-bold text-slate-800">
+                            Documentul este redactat și pregătit pentru descărcare
                           </h4>
                           <p className="text-[11px] text-slate-500">
-                            Format A4 Landscape cu margini standard conform normelor metodice
+                            Format A4 {orientation === "landscape" ? "Landscape (Vedere)" : "Portret (Vertical)"} cu margini standard conform normelor metodice
                           </p>
                         </div>
                       </div>
@@ -461,17 +576,17 @@ export const PreviewHall: React.FC<PreviewHallProps> = ({
                         <span>Documentul nu este cel dorit sau vrei să generezi unul nou?</span>
                       </div>
                       <div className="flex items-center gap-2.5 flex-wrap w-full sm:w-auto justify-end">
-                        {/* Buton Regenerare conform cerințelor din chat */}
+                        {/* Buton Regenerare conținut */}
                         <button
                           type="button"
                           onClick={handleRegenerate}
                           disabled={isLoading}
-                          id="btn-regenerate-doc-chat"
-                          title="Regenerează documentul ținând cont de modificările și cerințele din chat"
+                          id="btn-regenerate-doc"
+                          title="Regenerează conținutul documentului didactic"
                           className="btn-interaction flex-1 sm:flex-none px-3.5 py-2 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 hover:border-amber-400 text-xs font-bold rounded-lg shadow-2xs flex items-center justify-center space-x-1.5 cursor-pointer transition-all disabled:opacity-50"
                         >
                           <RefreshCw className={`w-3.5 h-3.5 text-amber-700 ${isLoading ? "animate-spin" : ""}`} />
-                          <span>Regenerează conform cerințelor din chat</span>
+                          <span>Regenerează conținutul</span>
                         </button>
 
                         {/* Buton Curățare document generat */}
@@ -567,7 +682,7 @@ export const PreviewHall: React.FC<PreviewHallProps> = ({
         </form>
 
         <div className="max-w-4xl mx-auto mt-2 px-1 flex flex-col sm:flex-row items-center justify-between text-[11px] text-slate-400 gap-1">
-          <span>Include cerințele sau atașează documente PDF/Word/imagini, apoi apasă «Trimite» sau «Regenerează conform cerințelor din chat».</span>
+          <span>Include cerințele sau atașează documente PDF/Word/imagini, apoi apasă «Trimite» sau «Regenerează conținutul».</span>
           <span className="text-teal-600 font-medium">EduMetodist România</span>
         </div>
       </div>

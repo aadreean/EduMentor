@@ -139,10 +139,10 @@
   font-weight: 600;
 }
 
-/* Print optimizations for teachers - Strict A4 Landscape */
+/* Print optimizations for teachers - Dynamic A4 format managed via dynamic-print-orientation */
 @media print {
   @page {
-    size: A4 landscape;
+    size: auto;
     margin: 10mm 12mm 10mm 12mm;
   }
 
