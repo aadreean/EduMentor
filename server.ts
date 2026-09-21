@@ -133,6 +133,7 @@ app.post("/api/generate", async (req, res) => {
       sablonFiles = [],
       programaFiles = [],
       suportFiles = [],
+      chatAttachedFiles = [],
       sablonText = "",
       programaText = "",
       suportText = "",
@@ -351,6 +352,25 @@ GENEREAZĂ PLANIFICAREA PE UNITĂȚI DE ÎNVĂȚARE COMPLETĂ cu tabelul Markdow
       userParts.push({ text: `[CORPUS CONCATENAT SUPORT / MANUAL (${allSuportFiles.length} fișiere încărcate)]:\n${concatenatedSuportText}` });
     }
 
+    // Adaugă fișierele suplimentare atașate din chat (PDF, DOCX, Imagini)
+    if (Array.isArray(chatAttachedFiles) && chatAttachedFiles.length > 0) {
+      chatAttachedFiles.forEach((file: any, index: number) => {
+        if (file && file.data && (file.type?.startsWith("image/") || file.type?.includes("pdf") || file.name?.toLowerCase().endsWith(".pdf"))) {
+          userParts.push({
+            inlineData: {
+              mimeType: file.type || (file.name?.toLowerCase().endsWith(".pdf") ? "application/pdf" : "image/jpeg"),
+              data: file.data,
+            },
+          });
+        }
+        if (file && (file.textSnippet || file.name)) {
+          userParts.push({
+            text: `[FIȘIER DIDACTIC ATAȘAT DIN CHAT #${index + 1}: ${file.name}]:\n${file.textSnippet || ""}`,
+          });
+        }
+      });
+    }
+
     contents.push({
       role: "user",
       parts: userParts,
@@ -490,6 +510,7 @@ app.post("/api/chat", async (req, res) => {
       taskType = "general", // 'fast' | 'general' | 'complex'
       clasa = "",
       disciplina = "",
+      attachedFiles = [],
     } = req.body;
 
     const apiKey = process.env.GEMINI_API_KEY;
@@ -525,6 +546,7 @@ DOMENII CHEIE DE EXPERTIZĂ:
 4. Proiectare didactică pe competențe (obiective operaționale, strategii interactive, instrumente de evaluare formativă și sumativă, diferențiere curriculară).
 5. Planificare integrată pentru învățământul primar (CLR, MEM, DP, AVAP, MM).
 
+Când utilizatorul atașează fișiere (PDF, DOCX sau Imagini), le analizezi cu atenție pentru a extrage cerințele, competențele sau conținuturile menționate și răspunzi în conformitate.
 Când utilizatorul întreabă despre noutăți legislative, structuri oficiale, date specifice sau programe școlare, folosești căutarea Google Search integrată pentru a verifica faptele și a oferi răspunsuri sigure și ancorate în realitatea învățământului românesc.
 Păstrează un ton prietenos, colegial și bine structurat (folosind liste, tabele mici sau puncte cheie când e util).`;
 
@@ -538,6 +560,28 @@ Păstrează un ton prietenos, colegial și bine structurat (folosind liste, tabe
       const lastUser = [...contents].reverse().find((c) => c.role === "user");
       if (lastUser && lastUser.parts && lastUser.parts[0]) {
         lastUser.parts[0].text = `[Context sesiune: ${clasa || "Toate clasele"} - ${disciplina || "Toate disciplinele"}]\n\n${lastUser.parts[0].text}`;
+      }
+    }
+
+    // Atașează fișierele trimise din chat (PDF, DOCX, imagini) la ultimul mesaj de la utilizator
+    if (Array.isArray(attachedFiles) && attachedFiles.length > 0) {
+      const lastUser = [...contents].reverse().find((c) => c.role === "user");
+      if (lastUser) {
+        attachedFiles.forEach((file: any, fileIdx: number) => {
+          if (file && file.data && (file.type?.startsWith("image/") || file.type?.includes("pdf") || file.name?.toLowerCase().endsWith(".pdf"))) {
+            lastUser.parts.push({
+              inlineData: {
+                mimeType: file.type || (file.name?.toLowerCase().endsWith(".pdf") ? "application/pdf" : "image/jpeg"),
+                data: file.data,
+              },
+            });
+          }
+          if (file && (file.textSnippet || file.name)) {
+            lastUser.parts.push({
+              text: `[FIȘIER ATAȘAT ÎN CHAT #${fileIdx + 1}: ${file.name}]\n${file.textSnippet || ""}`,
+            });
+          }
+        });
       }
     }
 

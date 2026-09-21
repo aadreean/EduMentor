@@ -149,8 +149,17 @@ export async function readFileAsBase64(file: File): Promise<string> {
 
 export async function extractTextSnippet(file: File): Promise<string> {
   return new Promise((resolve) => {
-    if (file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf")) {
+    const lowerName = file.name.toLowerCase();
+    if (file.type === "application/pdf" || lowerName.endsWith(".pdf")) {
       resolve(`Fișier PDF atașat: ${file.name} (${Math.round(file.size / 1024)} KB)`);
+      return;
+    }
+    if (file.type.startsWith("image/") || /\.(jpg|jpeg|png|webp|gif)$/i.test(lowerName)) {
+      resolve(`Imagine atașată: ${file.name} (${Math.round(file.size / 1024)} KB)`);
+      return;
+    }
+    if (lowerName.endsWith(".docx") || lowerName.endsWith(".doc") || file.type.includes("word")) {
+      resolve(`Document Word atașat: ${file.name} (${Math.round(file.size / 1024)} KB)`);
       return;
     }
     const reader = new FileReader();

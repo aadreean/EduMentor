@@ -153,11 +153,12 @@ export default function App() {
     setMessages((prev) => [...prev, sampleMsg]);
   };
 
-  const handleSendMessage = async (userInput: string) => {
+  const handleSendMessage = async (userInput: string, chatAttachedFiles?: FilePayload[]) => {
     const userMsg: ChatMessage = {
       id: `usr-${Date.now()}`,
       role: "user",
       content: userInput,
+      attachedFiles: chatAttachedFiles && chatAttachedFiles.length > 0 ? chatAttachedFiles : undefined,
       timestamp: new Date().toLocaleTimeString("ro-RO", { hour: "2-digit", minute: "2-digit" }),
     };
 
@@ -229,6 +230,7 @@ export default function App() {
           sablonFiles: sablonFiles.map(sanitizeFile),
           programaFiles: programaFiles.map(sanitizeFile),
           suportFiles: suportFiles.map(sanitizeFile),
+          chatAttachedFiles: (chatAttachedFiles || []).map(sanitizeFile),
           sablonText: combinedSablonText,
           programaText: combinedProgramaText,
           suportText: combinedSuportText,
@@ -299,6 +301,27 @@ export default function App() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleClearDocument = () => {
+    setMessages([]);
+    setTimeout(() => {
+      const target = document.getElementById("section-tipologie") || document.getElementById("section-antet");
+      target?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 80);
+  };
+
+  const handleRegenerateDocument = (customPrompt?: string, chatAttachedFiles?: FilePayload[]) => {
+    if (isLoading) return;
+    const activeDisciplina = disciplina || headerData.disciplina || "Limba și literatura română";
+    const activeClasa = clasa || headerData.clasa || "Clasa a VII-a";
+    const activeNorma = Number(oreSaptamana) || 2;
+
+    const promptText =
+      customPrompt ||
+      `Te rog să regenerezi integral documentul didactic (${tipDocument}) pentru ${activeClasa}, disciplina ${activeDisciplina}, norma ${activeNorma} ore/săptămână, respectând cu strictețe cerințele specificate și corecțiile din chat. Este obligatoriu să generezi atât antetul oficial complet, cât și întregul tabel complet pe toate cele 5 module (S1-S36).`;
+
+    handleSendMessage(promptText, chatAttachedFiles);
   };
 
   const handleGenerateClick = () => {
@@ -384,6 +407,8 @@ MANDAT STRICT: Este obligatoriu să generezi atât antetul tehnic oficial comple
         <PreviewHall
           messages={messages}
           onSendMessage={handleSendMessage}
+          onClearDocument={handleClearDocument}
+          onRegenerate={handleRegenerateDocument}
           isLoading={isLoading}
           clasa={clasa}
           oreSaptamana={oreSaptamana}

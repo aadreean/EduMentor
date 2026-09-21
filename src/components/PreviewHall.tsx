@@ -15,14 +15,22 @@ import {
   Loader2,
   Facebook,
   Youtube,
+  Trash2,
+  RefreshCw,
+  Paperclip,
+  X,
+  Image as ImageIcon,
+  FileCode,
 } from "lucide-react";
-import { ChatMessage, DocumentType, TechnicalHeaderData, formatClasaHeader } from "../types";
-import { copyTableToClipboard, exportWordDocument } from "../utils/fileHelpers";
+import { ChatMessage, DocumentType, TechnicalHeaderData, FilePayload, formatClasaHeader } from "../types";
+import { copyTableToClipboard, exportWordDocument, readFileAsBase64, extractTextSnippet } from "../utils/fileHelpers";
 import { sanitizeHtmlTags } from "../utils/sanitizeText";
 
 interface PreviewHallProps {
   messages: ChatMessage[];
-  onSendMessage: (text: string) => void;
+  onSendMessage: (text: string, attachedFiles?: FilePayload[]) => void;
+  onClearDocument?: () => void;
+  onRegenerate?: (customPrompt?: string, attachedFiles?: FilePayload[]) => void;
   isLoading: boolean;
   clasa: string;
   oreSaptamana: number;
@@ -35,6 +43,8 @@ interface PreviewHallProps {
 export const PreviewHall: React.FC<PreviewHallProps> = ({
   messages,
   onSendMessage,
+  onClearDocument,
+  onRegenerate,
   isLoading,
   clasa,
   oreSaptamana,
@@ -44,7 +54,9 @@ export const PreviewHall: React.FC<PreviewHallProps> = ({
 }) => {
   const [inputText, setInputText] = useState("");
   const [copiedText, setCopiedText] = useState(false);
+  const [attachedChatFiles, setAttachedChatFiles] = useState<FilePayload[]>([]);
   const previewContainerRef = useRef<HTMLDivElement>(null);
+  const chatFileInputRef = useRef<HTMLInputElement>(null);
 
   // Check for multi-part modular annual plan (M1-M2 and M3-M5)
   const assistantMessagesWithTables = messages.filter(
@@ -121,11 +133,102 @@ export const PreviewHall: React.FC<PreviewHallProps> = ({
     );
   };
 
+  const handleChatFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const filesList = e.target.files;
+    if (!filesList || filesList.length === 0) return;
+
+    const newPayloads: FilePayload[] = [];
+    for (let i = 0; i < filesList.length; i++) {
+      const file = filesList[i];
+      try {
+        const base64 = await readFileAsBase64(file);
+        const textSnippet = await extractTextSnippet(file);
+        newPayloads.push({
+          name: file.name,
+          size: file.size,
+          type: file.type || "application/octet-stream",
+          data: base64,
+          textSnippet,
+        });
+      } catch (err) {
+        console.error("Eroare la citirea fișierului din chat:", file.name, err);
+      }
+    }
+
+    if (newPayloads.length > 0) {
+      setAttachedChatFiles((prev) => [...prev, ...newPayloads]);
+    }
+    // Resetează inputul pentru a permite reîncărcarea aceluiași fișier dacă e nevoie
+    if (chatFileInputRef.current) {
+      chatFileInputRef.current.value = "";
+    }
+  };
+
+  const removeAttachedChatFile = (index: number) => {
+    setAttachedChatFiles((prev) => prev.filter((_, idx) => idx !== index));
+  };
+
+  const formatFileSize = (bytes: number): string => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
+
+  const getFileIcon = (fileName: string, mimeType: string) => {
+    const lower = fileName.toLowerCase();
+    if (lower.endsWith(".pdf") || mimeType.includes("pdf")) {
+      return <FileText className="w-3.5 h-3.5 text-rose-500 shrink-0" />;
+    }
+    if (lower.endsWith(".doc") || lower.endsWith(".docx") || mimeType.includes("word")) {
+      return <FileText className="w-3.5 h-3.5 text-blue-500 shrink-0" />;
+    }
+    if (lower.endsWith(".png") || lower.endsWith(".jpg") || lower.endsWith(".jpeg") || mimeType.includes("image")) {
+      return <ImageIcon className="w-3.5 h-3.5 text-amber-500 shrink-0" />;
+    }
+    return <FileCode className="w-3.5 h-3.5 text-emerald-500 shrink-0" />;
+  };
+
+  const handleRegenerate = () => {
+    if (isLoading) return;
+    const activeClasa = clasa || headerData.clasa || "clasa specificată";
+    const activeDisciplina = headerData.disciplina || "disciplina specificată";
+
+    let promptText = "";
+    if (inputText.trim()) {
+      promptText = `Te rog să regenerezi complet documentul didactic (${tipDocument}) pentru ${activeClasa}, ${activeDisciplina}, aplicând următoarele cerințe metodice și ajustări din chat: "${inputText.trim()}". Asigură-te că tabelul conține toate cele 5 module și 7 coloane oficiale.`;
+    } else {
+      promptText = `Te rog să regenerezi integral documentul didactic (${tipDocument}) pentru ${activeClasa}, ${activeDisciplina}, conform tuturor cerințelor și specificațiilor din conversație. Este obligatoriu să generezi atât antetul tehnic oficial complet, cât și întregul tabel curricular pentru toate cele 5 module (S1-S36).`;
+    }
+
+    if (onRegenerate) {
+      onRegenerate(promptText, attachedChatFiles);
+    } else {
+      onSendMessage(promptText, attachedChatFiles);
+    }
+
+    setInputText("");
+    setAttachedChatFiles([]);
+  };
+
+  const handleClearGenerated = () => {
+    if (onClearDocument) {
+      onClearDocument();
+    }
+  };
+
   const handleChatSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inputText.trim() || isLoading) return;
-    onSendMessage(inputText.trim());
+    if ((!inputText.trim() && attachedChatFiles.length === 0) || isLoading) return;
+
+    const messageToSend =
+      inputText.trim() ||
+      (attachedChatFiles.length > 0
+        ? `Atașez ${attachedChatFiles.length} ${attachedChatFiles.length === 1 ? "fișier" : "fișiere"} didactic(e). Te rog să le analizezi și să actualizezi/regenerezi documentul corespunzător.`
+        : "");
+
+    onSendMessage(messageToSend, attachedChatFiles);
     setInputText("");
+    setAttachedChatFiles([]);
   };
 
   const generateInitialDraft = () => {
@@ -310,43 +413,79 @@ export const PreviewHall: React.FC<PreviewHallProps> = ({
                   )}
 
                   {/* Caseta de descărcare la final de document */}
-                  <div className="no-print mt-8 pt-6 border-t border-[#E2E8F0] bg-[#F8FAF9] -mx-6 sm:-mx-10 -mb-6 sm:-mb-10 p-6 rounded-b-xl flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 flex items-center justify-center shrink-0">
-                        <FileText className="w-5 h-5" />
+                  <div className="no-print mt-8 pt-6 border-t border-[#E2E8F0] bg-[#F8FAF9] -mx-6 sm:-mx-10 -mb-6 sm:-mb-10 p-6 rounded-b-xl flex flex-col gap-4">
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 flex items-center justify-center shrink-0">
+                          <FileText className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <h4 className="text-xs font-bold text-slate-800 flex items-center gap-1.5 flex-wrap">
+                            <span>Documentul este redactat și pregătit pentru descărcare</span>
+                            <span className="text-[10px] text-[#0D9488] font-semibold bg-[#F0FDFA] px-2 py-0.5 rounded border border-[#CCFBF1]">
+                              autor prof. Adrian Podar
+                            </span>
+                          </h4>
+                          <p className="text-[11px] text-slate-500">
+                            Format A4 Landscape cu margini standard conform normelor metodice
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <h4 className="text-xs font-bold text-slate-800 flex items-center gap-1.5 flex-wrap">
-                          <span>Documentul este redactat și pregătit pentru descărcare</span>
-                          <span className="text-[10px] text-[#0D9488] font-semibold bg-[#F0FDFA] px-2 py-0.5 rounded border border-[#CCFBF1]">
-                            autor prof. Adrian Podar
-                          </span>
-                        </h4>
-                        <p className="text-[11px] text-slate-500">
-                          Format A4 Landscape cu margini standard conform normelor metodice
-                        </p>
+                      <div
+                        className="w-full sm:w-auto items-center"
+                        style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}
+                      >
+                        <button
+                          type="button"
+                          onClick={handleDownloadDocx}
+                          className="btn-interaction flex-1 sm:flex-none px-4 py-2 bg-white hover:bg-slate-50 border border-[#CBD5E1] hover:border-[#0D9488] text-[#1E293B] text-xs font-bold rounded-lg shadow-xs flex items-center justify-center space-x-1.5 cursor-pointer"
+                        >
+                          <Download className="w-4 h-4 text-[#0D9488]" />
+                          <span>Descarcă .DOCX</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handlePrintPdf}
+                          className="btn-interaction flex-1 sm:flex-none px-4 py-2 bg-[#0D9488] hover:bg-[#0F766E] text-white text-xs font-bold rounded-lg shadow-xs flex items-center justify-center space-x-1.5 cursor-pointer"
+                        >
+                          <Printer className="w-4 h-4" />
+                          <span>Printează PDF</span>
+                        </button>
                       </div>
                     </div>
-                    <div
-                      className="w-full sm:w-auto items-center"
-                      style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}
-                    >
-                      <button
-                        type="button"
-                        onClick={handleDownloadDocx}
-                        className="btn-interaction flex-1 sm:flex-none px-4 py-2 bg-white hover:bg-slate-50 border border-[#CBD5E1] hover:border-[#0D9488] text-[#1E293B] text-xs font-bold rounded-lg shadow-xs flex items-center justify-center space-x-1.5 cursor-pointer"
-                      >
-                        <Download className="w-4 h-4 text-[#0D9488]" />
-                        <span>Descarcă .DOCX</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handlePrintPdf}
-                        className="btn-interaction flex-1 sm:flex-none px-4 py-2 bg-[#0D9488] hover:bg-[#0F766E] text-white text-xs font-bold rounded-lg shadow-xs flex items-center justify-center space-x-1.5 cursor-pointer"
-                      >
-                        <Printer className="w-4 h-4" />
-                        <span>Printează PDF</span>
-                      </button>
+
+                    {/* ZONA DE SUB DESCARCĂ ȘI PRINTEAZĂ: BUTON CURĂȚARE ȘI BUTON REGENERARE */}
+                    <div className="pt-3 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3">
+                      <div className="flex items-center space-x-2 text-xs text-slate-500">
+                        <Sparkles className="w-3.5 h-3.5 text-[#0D9488] shrink-0" />
+                        <span>Documentul nu este cel dorit sau vrei să generezi unul nou?</span>
+                      </div>
+                      <div className="flex items-center gap-2.5 flex-wrap w-full sm:w-auto justify-end">
+                        {/* Buton Regenerare conform cerințelor din chat */}
+                        <button
+                          type="button"
+                          onClick={handleRegenerate}
+                          disabled={isLoading}
+                          id="btn-regenerate-doc-chat"
+                          title="Regenerează documentul ținând cont de modificările și cerințele din chat"
+                          className="btn-interaction flex-1 sm:flex-none px-3.5 py-2 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 hover:border-amber-400 text-xs font-bold rounded-lg shadow-2xs flex items-center justify-center space-x-1.5 cursor-pointer transition-all disabled:opacity-50"
+                        >
+                          <RefreshCw className={`w-3.5 h-3.5 text-amber-700 ${isLoading ? "animate-spin" : ""}`} />
+                          <span>Regenerează conform cerințelor din chat</span>
+                        </button>
+
+                        {/* Buton Curățare document generat */}
+                        <button
+                          type="button"
+                          onClick={handleClearGenerated}
+                          id="btn-clear-generated-document"
+                          title="Curăță ceea ce a fost generat pentru a putea începe un document nou"
+                          className="btn-interaction flex-1 sm:flex-none px-3.5 py-2 bg-white hover:bg-rose-50 text-slate-700 hover:text-rose-700 border border-slate-300 hover:border-rose-300 text-xs font-bold rounded-lg shadow-2xs flex items-center justify-center space-x-1.5 cursor-pointer transition-all"
+                        >
+                          <Trash2 className="w-3.5 h-3.5 text-rose-500" />
+                          <span>Curăță documentul generat</span>
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -358,18 +497,68 @@ export const PreviewHall: React.FC<PreviewHallProps> = ({
 
       {/* 3. BARA INFERIOARĂ PENTRU AJUSTARE METODICĂ DISCRETĂ */}
       <div id="chat-modificari" className="no-print p-3 sm:p-4 bg-white border-t border-[#E2E8F0]">
-        <form onSubmit={handleChatSubmit} className="flex items-center space-x-2.5 max-w-4xl mx-auto">
+        {/* Previzualizare fișiere atașate în chat */}
+        {attachedChatFiles.length > 0 && (
+          <div className="max-w-4xl mx-auto mb-2.5 flex items-center gap-2 flex-wrap">
+            <span className="text-[11px] font-semibold text-slate-500 flex items-center gap-1">
+              <Paperclip className="w-3.5 h-3.5 text-[#0D9488]" />
+              Fișiere atașate pentru chat / regenerare ({attachedChatFiles.length}):
+            </span>
+            {attachedChatFiles.map((f, idx) => (
+              <span
+                key={idx}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-[#F0FDFA] border border-[#99F6E4] text-[#0F766E] text-xs font-medium rounded-lg shadow-2xs"
+              >
+                {getFileIcon(f.name, f.type)}
+                <span className="max-w-[140px] sm:max-w-[220px] truncate" title={f.name}>
+                  {f.name}
+                </span>
+                <span className="text-[10px] text-slate-400">({formatFileSize(f.size)})</span>
+                <button
+                  type="button"
+                  onClick={() => removeAttachedChatFile(idx)}
+                  className="hover:text-rose-600 p-0.5 rounded-full cursor-pointer ml-0.5"
+                  title="Elimină fișierul"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </span>
+            ))}
+          </div>
+        )}
+
+        <form onSubmit={handleChatSubmit} className="flex items-center space-x-2 max-w-4xl mx-auto">
+          {/* Buton Atașare Fișiere în Chat (PDF, DOCX, Imagini) */}
+          <button
+            type="button"
+            onClick={() => chatFileInputRef.current?.click()}
+            disabled={isLoading}
+            id="btn-attach-chat-files"
+            title="Atașează fișiere didactice (PDF, DOCX/Word, Imagini) pentru instrucțiuni sau ajustări"
+            className="btn-interaction p-2.5 bg-[#F8FAF9] hover:bg-[#F0FDFA] text-slate-600 hover:text-[#0D9488] border border-[#E2E8F0] hover:border-[#0D9488] rounded-xl text-xs font-medium transition-colors flex items-center justify-center shrink-0 cursor-pointer"
+          >
+            <Paperclip className="w-4 h-4 text-[#0D9488]" />
+          </button>
+          <input
+            ref={chatFileInputRef}
+            type="file"
+            multiple
+            accept=".pdf,.docx,.doc,.png,.jpg,.jpeg,.webp"
+            onChange={handleChatFileChange}
+            className="hidden"
+          />
+
           <input
             type="text"
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
             disabled={isLoading}
-            placeholder="Ai nevoie de ajustări? (ex: «Adaugă 2 ore de recapitulare în Modulul 2», «Schimbă tema din S14»...)"
+            placeholder="Ai cerințe de modificare sau regenerare? (ex: «Adaugă 2 ore de recapitulare în Modulul 2», «Actualizează conform fișierului atașat»...)"
             className="flex-1 px-4 py-2.5 bg-[#F8FAF9] border border-[#E2E8F0] rounded-xl text-xs sm:text-sm text-[#1E293B] placeholder-slate-400 focus:outline-hidden focus:ring-2 focus:ring-[#0D9488]/30 focus:border-[#0D9488] focus:bg-white transition-all duration-150"
           />
           <button
             type="submit"
-            disabled={!inputText.trim() || isLoading}
+            disabled={(!inputText.trim() && attachedChatFiles.length === 0) || isLoading}
             className="btn-interaction px-4 py-2.5 bg-[#0D9488] hover:bg-[#0F766E] disabled:bg-slate-200 disabled:text-slate-400 text-white rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 shadow-2xs shrink-0 cursor-pointer"
           >
             <span>Trimite</span>
@@ -377,8 +566,9 @@ export const PreviewHall: React.FC<PreviewHallProps> = ({
           </button>
         </form>
 
-        <div className="max-w-4xl mx-auto mt-2 px-1 text-[11px] text-slate-400 text-center sm:text-left">
-          <span>Ajustează promptul sau solicită modificări specifice pentru actualizarea automată a documentului didactic.</span>
+        <div className="max-w-4xl mx-auto mt-2 px-1 flex flex-col sm:flex-row items-center justify-between text-[11px] text-slate-400 gap-1">
+          <span>Include cerințele sau atașează documente PDF/Word/imagini, apoi apasă «Trimite» sau «Regenerează conform cerințelor din chat».</span>
+          <span className="text-teal-600 font-medium">EduMetodist România</span>
         </div>
       </div>
     </section>

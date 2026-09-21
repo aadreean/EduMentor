@@ -18,8 +18,13 @@ import {
   Check,
   Copy,
   ChevronRight,
+  Paperclip,
+  FileText,
+  Image as ImageIcon,
+  FileCode,
 } from "lucide-react";
-import { AssistantChatMessage, GroundingSource } from "../types";
+import { AssistantChatMessage, GroundingSource, FilePayload } from "../types";
+import { readFileAsBase64, extractTextSnippet } from "../utils/fileHelpers";
 
 interface EduChatAssistantProps {
   isOpen: boolean;
@@ -58,9 +63,11 @@ Despre ce doriți să discutăm astăzi?`,
   const [isLoading, setIsLoading] = useState(false);
   const [taskType, setTaskType] = useState<"fast" | "general" | "complex">("general");
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [attachedFiles, setAttachedFiles] = useState<FilePayload[]>([]);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -71,14 +78,75 @@ Despre ce doriți să discutăm astăzi?`,
     }
   }, [isOpen, messages]);
 
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const filesList = e.target.files;
+    if (!filesList || filesList.length === 0) return;
+
+    const newPayloads: FilePayload[] = [];
+    for (let i = 0; i < filesList.length; i++) {
+      const file = filesList[i];
+      try {
+        const base64 = await readFileAsBase64(file);
+        const textSnippet = await extractTextSnippet(file);
+        newPayloads.push({
+          name: file.name,
+          size: file.size,
+          type: file.type || "application/octet-stream",
+          data: base64,
+          textSnippet,
+        });
+      } catch (err) {
+        console.error("Eroare citire fișier chat:", file.name, err);
+      }
+    }
+
+    if (newPayloads.length > 0) {
+      setAttachedFiles((prev) => [...prev, ...newPayloads]);
+    }
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const removeAttachedFile = (index: number) => {
+    setAttachedFiles((prev) => prev.filter((_, idx) => idx !== index));
+  };
+
+  const formatFileSize = (bytes: number): string => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
+
+  const getFileIcon = (fileName: string, mimeType: string) => {
+    const lower = fileName.toLowerCase();
+    if (lower.endsWith(".pdf") || mimeType.includes("pdf")) {
+      return <FileText className="w-3.5 h-3.5 text-rose-500 shrink-0" />;
+    }
+    if (lower.endsWith(".doc") || lower.endsWith(".docx") || mimeType.includes("word")) {
+      return <FileText className="w-3.5 h-3.5 text-blue-500 shrink-0" />;
+    }
+    if (lower.endsWith(".png") || lower.endsWith(".jpg") || lower.endsWith(".jpeg") || mimeType.includes("image")) {
+      return <ImageIcon className="w-3.5 h-3.5 text-amber-500 shrink-0" />;
+    }
+    return <FileCode className="w-3.5 h-3.5 text-emerald-500 shrink-0" />;
+  };
+
   const handleSend = async (userText: string) => {
     const textToSend = userText.trim();
-    if (!textToSend || isLoading) return;
+    if ((!textToSend && attachedFiles.length === 0) || isLoading) return;
+
+    const currentFiles = [...attachedFiles];
 
     const userMessage: AssistantChatMessage = {
       id: `usr-${Date.now()}`,
       role: "user",
-      content: textToSend,
+      content:
+        textToSend ||
+        (currentFiles.length > 0
+          ? `Atașez ${currentFiles.length} ${currentFiles.length === 1 ? "fișier" : "fișiere"} didactic(e). Te rog să îl/le analizezi.`
+          : ""),
+      attachedFiles: currentFiles.length > 0 ? currentFiles : undefined,
       timestamp: new Date().toLocaleTimeString("ro-RO", { hour: "2-digit", minute: "2-digit" }),
       taskType,
     };
@@ -86,10 +154,11 @@ Despre ce doriți să discutăm astăzi?`,
     const newMessages = [...messages, userMessage];
     setMessages(newMessages);
     setInput("");
+    setAttachedFiles([]);
     setIsLoading(true);
 
     try {
-      // Send conversation history to the server
+      // Trimite istoricul și fișierele atașate către backend
       const payload = {
         messages: newMessages.map((m) => ({
           role: m.role,
@@ -98,6 +167,13 @@ Despre ce doriți să discutăm astăzi?`,
         taskType,
         clasa,
         disciplina,
+        attachedFiles: currentFiles.map((f) => ({
+          name: f.name,
+          size: f.size,
+          type: f.type,
+          textSnippet: f.textSnippet,
+          data: f.size && f.size < 3.5 * 1024 * 1024 ? f.data : undefined,
+        })),
       };
 
       const res = await fetch("/api/chat", {
@@ -315,6 +391,26 @@ Despre ce doriți să discutăm astăzi?`,
                             : "bg-white text-slate-800 border border-slate-200 rounded-tl-none shadow-2xs font-normal"
                         }`}
                       >
+                        {/* Fișiere atașate în mesajul utilizatorului */}
+                        {msg.attachedFiles && msg.attachedFiles.length > 0 && (
+                          <div className="mb-2 flex flex-wrap gap-1.5">
+                            {msg.attachedFiles.map((file, idx) => (
+                              <span
+                                key={idx}
+                                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium border ${
+                                  isUser
+                                    ? "bg-[#0F766E] text-teal-50 border-[#14B8A6]"
+                                    : "bg-slate-50 text-slate-700 border-slate-200"
+                                }`}
+                              >
+                                {getFileIcon(file.name, file.type)}
+                                <span className="max-w-[120px] truncate">{file.name}</span>
+                                <span className="opacity-75 text-[9.5px]">({formatFileSize(file.size)})</span>
+                              </span>
+                            ))}
+                          </div>
+                        )}
+
                         <div className="markdown-body font-academic overflow-x-auto text-xs sm:text-[13px]">
                           <Markdown remarkPlugins={[remarkGfm]}>{msg.content}</Markdown>
                         </div>
@@ -425,8 +521,38 @@ Despre ce doriți să discutăm astăzi?`,
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Input Form */}
+            {/* Input Form with Attachment Support */}
             <div className="p-3 bg-white border-t border-slate-200">
+              {/* Fișiere atașate în așteptarea trimiterii */}
+              {attachedFiles.length > 0 && (
+                <div className="mb-2.5 flex items-center gap-1.5 flex-wrap">
+                  <span className="text-[11px] font-semibold text-slate-500 flex items-center gap-1">
+                    <Paperclip className="w-3 h-3 text-[#0D9488]" />
+                    Atașate ({attachedFiles.length}):
+                  </span>
+                  {attachedFiles.map((file, idx) => (
+                    <span
+                      key={idx}
+                      className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-[#F0FDFA] border border-[#99F6E4] text-[#0F766E] text-xs font-medium rounded-lg shadow-2xs"
+                    >
+                      {getFileIcon(file.name, file.type)}
+                      <span className="max-w-[120px] truncate" title={file.name}>
+                        {file.name}
+                      </span>
+                      <span className="text-[9.5px] text-slate-400">({formatFileSize(file.size)})</span>
+                      <button
+                        type="button"
+                        onClick={() => removeAttachedFile(idx)}
+                        className="hover:text-rose-600 p-0.5 rounded-full cursor-pointer ml-0.5"
+                        title="Elimină fișierul"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
@@ -434,6 +560,26 @@ Despre ce doriți să discutăm astăzi?`,
                 }}
                 className="flex items-center gap-2"
               >
+                {/* Buton Atașare Fișiere (PDF, DOCX, Imagini) */}
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isLoading}
+                  id="btn-attach-modal-chat"
+                  title="Atașează documente sau imagini (PDF, DOCX, Imagini)"
+                  className="btn-interaction p-2.5 bg-slate-50 hover:bg-[#F0FDFA] text-slate-600 hover:text-[#0D9488] border border-slate-200 hover:border-[#0D9488] rounded-xl text-xs font-medium transition-colors flex items-center justify-center shrink-0 cursor-pointer"
+                >
+                  <Paperclip className="w-4 h-4 text-[#0D9488]" />
+                </button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  multiple
+                  accept=".pdf,.docx,.doc,.png,.jpg,.jpeg,.webp"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                />
+
                 <input
                   ref={inputRef}
                   type="text"
@@ -441,15 +587,17 @@ Despre ce doriți să discutăm astăzi?`,
                   onChange={(e) => setInput(e.target.value)}
                   disabled={isLoading}
                   placeholder={
-                    taskType === "general"
-                      ? "Întreabă despre structură, conținuturi, legislație (Google Search)..."
+                    attachedFiles.length > 0
+                      ? "Adaugă detalii despre fișierele atașate sau apasă Trimite..."
+                      : taskType === "general"
+                      ? "Întreabă despre structură, conținuturi, atașează fișiere sau legislație..."
                       : "Scrie mesajul tău pentru asistentul metodist..."
                   }
                   className="flex-1 px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-[#0D9488]/30 focus:border-[#0D9488] transition-all"
                 />
                 <button
                   type="submit"
-                  disabled={!input.trim() || isLoading}
+                  disabled={(!input.trim() && attachedFiles.length === 0) || isLoading}
                   id="btn-send-chat-message"
                   className="btn-interaction px-3.5 py-2.5 bg-[#0D9488] hover:bg-[#0F766E] disabled:bg-slate-200 disabled:text-slate-400 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center shrink-0 cursor-pointer shadow-xs"
                 >
@@ -457,7 +605,7 @@ Despre ce doriți să discutăm astăzi?`,
                 </button>
               </form>
               <div className="mt-2 flex items-center justify-between text-[10px] text-slate-400 px-1">
-                <span>Conectat la Google Search (gemini-3.5-flash)</span>
+                <span>Conectat la Google Search & suport fișiere (PDF, DOCX, imagini)</span>
                 <span>EduMentor • Anul 2026-2027</span>
               </div>
             </div>

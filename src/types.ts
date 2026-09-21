@@ -26,6 +26,7 @@ export interface AssistantChatMessage {
   searchQueries?: string[];
   modelUsed?: string;
   taskType?: "fast" | "general" | "complex";
+  attachedFiles?: FilePayload[];
 }
 
 export interface ChatMessage {
@@ -33,6 +34,7 @@ export interface ChatMessage {
   role: "user" | "assistant";
   content: string;
   timestamp: string;
+  attachedFiles?: FilePayload[];
   metadata?: {
     clasa?: string;
     oreSaptamana?: number;
