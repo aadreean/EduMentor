@@ -410,8 +410,15 @@ REGULĂ DE AUR PRIVIND CONȚINUTUL ȘI UNITĂȚILE:
     });
 
     let responseText = "";
-    // Modele verificate cu suport multimodal pentru imagini/PDF și cotă activă
-    const candidateModels = ["gemini-2.5-flash", "gemini-2.5-pro", "gemini-3.8-flash", "gemini-flash-latest"];
+    // Modele de înaltă performanță verificate cu suport multimodal pentru imagini/PDF și cotă activă
+    const candidateModels = [
+      "gemini-3.5-flash",
+      "gemini-3.6-flash",
+      "gemini-3.7-flash",
+      "gemini-2.5-flash",
+      "gemini-3.1-flash-lite",
+      "gemini-flash-lite-latest"
+    ];
     let lastError: any = null;
 
     for (const modelName of candidateModels) {
@@ -443,6 +450,18 @@ REGULĂ DE AUR PRIVIND CONȚINUTUL ȘI UNITĂȚILE:
     }
 
     if (!responseText) {
+      const hasAttachedDocuments =
+        allSuportFiles.length > 0 ||
+        (Array.isArray(chatAttachedFiles) && chatAttachedFiles.length > 0) ||
+        Boolean(concatenatedSuportText.trim());
+
+      if (hasAttachedDocuments) {
+        return res.status(502).json({
+          success: false,
+          error: `Nu s-a putut procesa cuprinsul documentului atașat prin serviciul AI (${lastError?.message || "Răspuns invalid"}). Vă rugăm să apăsați din nou pe butonul de generare.`,
+        });
+      }
+
       console.warn("Gemini models could not return a table. Using pedagogical plan generator.", lastError?.message);
       responseText = runFallback();
     }
@@ -453,6 +472,18 @@ REGULĂ DE AUR PRIVIND CONȚINUTUL ȘI UNITĂȚILE:
     });
   } catch (error: any) {
     console.error("API error, generating with pedagogical fallback:", error);
+    const hasFiles =
+      (Array.isArray(req.body?.suportFiles) && req.body.suportFiles.length > 0) ||
+      (Array.isArray(req.body?.chatAttachedFiles) && req.body.chatAttachedFiles.length > 0) ||
+      Boolean(req.body?.suportText?.trim());
+
+    if (hasFiles) {
+      return res.status(500).json({
+        success: false,
+        error: `Eroare la procesarea fișierului atașat: ${error?.message || "Eroare internă"}. Vă rugăm să reîncercați.`,
+      });
+    }
+
     try {
       const fallback = generatePedagogicalPlan({
         clasa: req.body?.clasa || "Clasa a XII-a",

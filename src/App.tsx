@@ -248,55 +248,85 @@ export default function App() {
         };
         setMessages((prev) => [...prev, assistantMsg]);
       } else {
-        console.warn("API did not return a structured table, employing curricular plan fallback.");
-        const fallbackText = generatePedagogicalPlan({
-          clasa: activeClasa,
-          disciplina: activeDisciplina,
-          oreSaptamana: activeNorma,
-          tipDocument,
-          headerData,
-          manualSuport: headerData.manualSuport,
-          programaSnippets: [combinedProgramaText].filter(Boolean),
-          suportSnippets: [combinedSuportText].filter(Boolean),
-        });
+        const hasAttachedFiles =
+          suportFiles.length > 0 ||
+          (chatAttachedFiles && chatAttachedFiles.length > 0) ||
+          Boolean(combinedSuportText.trim());
 
-        const assistantMsg: ChatMessage = {
-          id: `ast-fallback-${Date.now()}`,
-          role: "assistant",
-          content: fallbackText,
-          timestamp: new Date().toLocaleTimeString("ro-RO", { hour: "2-digit", minute: "2-digit" }),
-        };
-        setMessages((prev) => [...prev, assistantMsg]);
+        if (hasAttachedFiles) {
+          const errorMsg: ChatMessage = {
+            id: `ast-err-${Date.now()}`,
+            role: "assistant",
+            content: `### ⚠️ Notificare procesare cuprins\n\n${data.error || "Serviciul de recunoaștere nu a putut extrage automat conținuturile din fișierul atașat în această secundă."}\n\n**Soluție:** Vă rugăm să apăsați din nou pe **„Regenerează Document”** sau **„GENEREAZĂ”**. Toate modelele multimodale sunt pregătite pentru prelucrarea fișierului dumneavoastră.`,
+            timestamp: new Date().toLocaleTimeString("ro-RO", { hour: "2-digit", minute: "2-digit" }),
+          };
+          setMessages((prev) => [...prev, errorMsg]);
+        } else {
+          console.warn("API did not return a structured table, employing curricular plan fallback.");
+          const fallbackText = generatePedagogicalPlan({
+            clasa: activeClasa,
+            disciplina: activeDisciplina,
+            oreSaptamana: activeNorma,
+            tipDocument,
+            headerData,
+            manualSuport: headerData.manualSuport,
+            programaSnippets: [combinedProgramaText].filter(Boolean),
+            suportSnippets: [combinedSuportText].filter(Boolean),
+          });
+
+          const assistantMsg: ChatMessage = {
+            id: `ast-fallback-${Date.now()}`,
+            role: "assistant",
+            content: fallbackText,
+            timestamp: new Date().toLocaleTimeString("ro-RO", { hour: "2-digit", minute: "2-digit" }),
+          };
+          setMessages((prev) => [...prev, assistantMsg]);
+        }
       }
     } catch (err: any) {
-      console.error("Fetch error, invoking direct client curricular fallback:", err);
-      try {
-        const fallbackText = generatePedagogicalPlan({
-          clasa: activeClasa,
-          disciplina: activeDisciplina,
-          oreSaptamana: activeNorma,
-          tipDocument,
-          headerData,
-          manualSuport: headerData.manualSuport,
-          programaSnippets: [programaText, ...programaFiles.map((f) => f.textSnippet || f.name)].filter(Boolean),
-          suportSnippets: [suportText, ...suportFiles.map((f) => f.textSnippet || f.name)].filter(Boolean),
-        });
+      console.error("Fetch error:", err);
+      const hasAttachedFiles =
+        suportFiles.length > 0 ||
+        (chatAttachedFiles && chatAttachedFiles.length > 0) ||
+        Boolean(combinedSuportText.trim());
 
-        const assistantMsg: ChatMessage = {
-          id: `ast-fallback-${Date.now()}`,
-          role: "assistant",
-          content: fallbackText,
-          timestamp: new Date().toLocaleTimeString("ro-RO", { hour: "2-digit", minute: "2-digit" }),
-        };
-        setMessages((prev) => [...prev, assistantMsg]);
-      } catch (fallbackErr) {
+      if (hasAttachedFiles) {
         const errorMsg: ChatMessage = {
           id: `ast-err-${Date.now()}`,
           role: "assistant",
-          content: `### ⚠️ Notificare metodist\n\nA apărut o problemă la generare. Vă rugăm să reîncercați apăsând din nou butonul **GENEREAZĂ**.\n\nDetalii tehnice: ${err?.message || "Conexiune întreruptă"}`,
+          content: `### ⚠️ Eroare de conexiune la procesarea documentului\n\nNu s-au putut prelua conținuturile din cauza unei întreruperi de rețea (${err?.message || "Eroare rețea"}).\n\nVă rugăm să apăsați din nou butonul **GENEREAZĂ** sau **Regenerează Document**.`,
           timestamp: new Date().toLocaleTimeString("ro-RO", { hour: "2-digit", minute: "2-digit" }),
         };
         setMessages((prev) => [...prev, errorMsg]);
+      } else {
+        try {
+          const fallbackText = generatePedagogicalPlan({
+            clasa: activeClasa,
+            disciplina: activeDisciplina,
+            oreSaptamana: activeNorma,
+            tipDocument,
+            headerData,
+            manualSuport: headerData.manualSuport,
+            programaSnippets: [programaText, ...programaFiles.map((f) => f.textSnippet || f.name)].filter(Boolean),
+            suportSnippets: [suportText, ...suportFiles.map((f) => f.textSnippet || f.name)].filter(Boolean),
+          });
+
+          const assistantMsg: ChatMessage = {
+            id: `ast-fallback-${Date.now()}`,
+            role: "assistant",
+            content: fallbackText,
+            timestamp: new Date().toLocaleTimeString("ro-RO", { hour: "2-digit", minute: "2-digit" }),
+          };
+          setMessages((prev) => [...prev, assistantMsg]);
+        } catch (fallbackErr) {
+          const errorMsg: ChatMessage = {
+            id: `ast-err-${Date.now()}`,
+            role: "assistant",
+            content: `### ⚠️ Notificare metodist\n\nA apărut o problemă la generare. Vă rugăm să reîncercați apăsând din nou butonul **GENEREAZĂ**.\n\nDetalii tehnice: ${err?.message || "Conexiune întreruptă"}`,
+            timestamp: new Date().toLocaleTimeString("ro-RO", { hour: "2-digit", minute: "2-digit" }),
+          };
+          setMessages((prev) => [...prev, errorMsg]);
+        }
       }
     } finally {
       setIsLoading(false);
