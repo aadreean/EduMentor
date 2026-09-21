@@ -1,6 +1,7 @@
 import React, { useState, useRef } from "react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import rehypeRaw from "rehype-raw";
 import {
   Copy,
   Check,
@@ -17,6 +18,7 @@ import {
 } from "lucide-react";
 import { ChatMessage, DocumentType, TechnicalHeaderData, formatClasaHeader } from "../types";
 import { copyTableToClipboard, exportWordDocument } from "../utils/fileHelpers";
+import { sanitizeHtmlTags } from "../utils/sanitizeText";
 
 interface PreviewHallProps {
   messages: ChatMessage[];
@@ -274,7 +276,9 @@ export const PreviewHall: React.FC<PreviewHallProps> = ({
               ) : (
                 <div id="plan-table-content" className="space-y-4 animate-appear-smooth">
                   <div className="markdown-body font-academic text-xs sm:text-sm leading-relaxed overflow-x-auto">
-                    <Markdown remarkPlugins={[remarkGfm]}>{documentContent}</Markdown>
+                    <Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
+                      {sanitizeHtmlTags(documentContent)}
+                    </Markdown>
                   </div>
 
                   {/* Buton acțiune modulară pentru finalizarea planificării cu M3-M5 dacă a fost generată parțial */}

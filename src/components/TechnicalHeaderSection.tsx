@@ -59,6 +59,34 @@ export const TechnicalHeaderSection: React.FC<TechnicalHeaderSectionProps> = ({
         </div>
 
         <div className="flex items-center space-x-2 self-start sm:self-auto">
+          <button
+            type="button"
+            onClick={() => {
+              setHeaderData({
+                unitateInvatamant: "",
+                anScolar: "2026-2027",
+                disciplina: "",
+                manualSuport: "",
+                clasa: "",
+                filiera: "",
+                profil: "",
+                specializare: "",
+                nrOreSaptamana: `${oreSaptamana} ore/săpt.`,
+                profesor: "",
+                director: "",
+                respCatedra: "",
+                nrInregistrare: "",
+                vacantaFebruarie: headerData.vacantaFebruarie || "Săptămâna 2 (22 - 28 Februarie 2027)",
+                isComplete: false,
+              });
+              setClasa("");
+              setDisciplina("");
+            }}
+            className="text-[11px] font-medium text-slate-500 hover:text-rose-600 px-2.5 py-1 rounded-lg border border-slate-200 hover:border-rose-200 hover:bg-rose-50 transition-colors cursor-pointer"
+            title="Șterge conținutul câmpurilor pentru a le completa de la zero"
+          >
+            Golește câmpurile
+          </button>
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[#F0FDFA] text-[#0D9488] border border-[#CCFBF1]">
             <ShieldCheck className="w-3.5 h-3.5" />
             <span>Antet Permanent Vizibil</span>
@@ -76,10 +104,11 @@ export const TechnicalHeaderSection: React.FC<TechnicalHeaderSectionProps> = ({
             </label>
             <input
               type="text"
-              value={headerData.unitateInvatamant}
+              value={headerData.unitateInvatamant || ""}
               onChange={(e) => handleFieldChange("unitateInvatamant", e.target.value)}
+              onFocus={(e) => e.target.select()}
               placeholder="ex: Colegiul Național „Mihai Viteazul”"
-              className="w-full px-3.5 py-2.5 bg-[#F8FAF9] border border-[#E2E8F0] rounded-xl text-xs sm:text-sm text-[#1E293B] placeholder-slate-400 focus:outline-hidden focus:ring-2 focus:ring-[#0D9488]/30 focus:border-[#0D9488] focus:bg-white transition-all duration-150"
+              className="w-full px-3.5 py-2.5 bg-[#F8FAF9] border border-[#E2E8F0] rounded-xl text-xs sm:text-sm text-[#1E293B] placeholder:text-slate-400 focus:placeholder-transparent focus:outline-hidden focus:ring-2 focus:ring-[#0D9488]/30 focus:border-[#0D9488] focus:bg-white transition-all duration-150"
             />
           </div>
 
@@ -91,10 +120,11 @@ export const TechnicalHeaderSection: React.FC<TechnicalHeaderSectionProps> = ({
             </div>
             <input
               type="text"
-              value={headerData.disciplina || disciplina}
+              value={headerData.disciplina || disciplina || ""}
               onChange={(e) => handleFieldChange("disciplina", e.target.value)}
+              onFocus={(e) => e.target.select()}
               placeholder="ex: Limba și literatura română / CLR, MEM, DP"
-              className="w-full px-3.5 py-2.5 bg-[#F8FAF9] border border-[#E2E8F0] rounded-xl text-xs sm:text-sm text-[#1E293B] placeholder-slate-400 focus:outline-hidden focus:ring-2 focus:ring-[#0D9488]/30 focus:border-[#0D9488] focus:bg-white transition-all duration-150"
+              className="w-full px-3.5 py-2.5 bg-[#F8FAF9] border border-[#E2E8F0] rounded-xl text-xs sm:text-sm text-[#1E293B] placeholder:text-slate-400 focus:placeholder-transparent focus:outline-hidden focus:ring-2 focus:ring-[#0D9488]/30 focus:border-[#0D9488] focus:bg-white transition-all duration-150"
             />
             <p className="text-[11px] text-[#0D9488] font-medium mt-1 leading-snug">
               💡 Pentru ciclul primar, introduceți disciplinele integrate (ex: CLR, MEM, DP)
@@ -107,10 +137,11 @@ export const TechnicalHeaderSection: React.FC<TechnicalHeaderSectionProps> = ({
             </label>
             <input
               type="text"
-              value={headerData.clasa || clasa}
+              value={headerData.clasa || clasa || ""}
               onChange={(e) => handleFieldChange("clasa", e.target.value)}
+              onFocus={(e) => e.target.select()}
               placeholder="ex: Clasa a VII-a / Clasa a XI-a A / Clasa I"
-              className="w-full px-3.5 py-2.5 bg-[#F8FAF9] border border-[#E2E8F0] rounded-xl text-xs sm:text-sm text-[#1E293B] placeholder-slate-400 focus:outline-hidden focus:ring-2 focus:ring-[#0D9488]/30 focus:border-[#0D9488] focus:bg-white transition-all duration-150"
+              className="w-full px-3.5 py-2.5 bg-[#F8FAF9] border border-[#E2E8F0] rounded-xl text-xs sm:text-sm text-[#1E293B] placeholder:text-slate-400 focus:placeholder-transparent focus:outline-hidden focus:ring-2 focus:ring-[#0D9488]/30 focus:border-[#0D9488] focus:bg-white transition-all duration-150"
             />
           </div>
         </div>
@@ -143,8 +174,9 @@ export const TechnicalHeaderSection: React.FC<TechnicalHeaderSectionProps> = ({
                 list="filiere-optiuni"
                 value={headerData.filiera || ""}
                 onChange={(e) => handleFieldChange("filiera", e.target.value)}
+                onFocus={(e) => e.target.select()}
                 placeholder="ex: Teoretică / Vocațională"
-                className="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-lg text-xs text-[#1E293B] placeholder-slate-400 focus:outline-hidden focus:ring-2 focus:ring-[#0D9488]/30 focus:border-[#0D9488] transition-all"
+                className="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-lg text-xs text-[#1E293B] placeholder:text-slate-400 focus:placeholder-transparent focus:outline-hidden focus:ring-2 focus:ring-[#0D9488]/30 focus:border-[#0D9488] transition-all"
               />
               <datalist id="filiere-optiuni">
                 <option value="Teoretică" />
@@ -163,8 +195,9 @@ export const TechnicalHeaderSection: React.FC<TechnicalHeaderSectionProps> = ({
                 list="profiluri-optiuni"
                 value={headerData.profil || ""}
                 onChange={(e) => handleFieldChange("profil", e.target.value)}
+                onFocus={(e) => e.target.select()}
                 placeholder="ex: Umanist / Real / Tehnic"
-                className="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-lg text-xs text-[#1E293B] placeholder-slate-400 focus:outline-hidden focus:ring-2 focus:ring-[#0D9488]/30 focus:border-[#0D9488] transition-all"
+                className="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-lg text-xs text-[#1E293B] placeholder:text-slate-400 focus:placeholder-transparent focus:outline-hidden focus:ring-2 focus:ring-[#0D9488]/30 focus:border-[#0D9488] transition-all"
               />
               <datalist id="profiluri-optiuni">
                 <option value="Umanist" />
@@ -190,8 +223,9 @@ export const TechnicalHeaderSection: React.FC<TechnicalHeaderSectionProps> = ({
                 list="specializari-optiuni"
                 value={headerData.specializare || ""}
                 onChange={(e) => handleFieldChange("specializare", e.target.value)}
+                onFocus={(e) => e.target.select()}
                 placeholder="ex: Filologie / Științe ale naturii"
-                className="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-lg text-xs text-[#1E293B] placeholder-slate-400 focus:outline-hidden focus:ring-2 focus:ring-[#0D9488]/30 focus:border-[#0D9488] transition-all"
+                className="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-lg text-xs text-[#1E293B] placeholder:text-slate-400 focus:placeholder-transparent focus:outline-hidden focus:ring-2 focus:ring-[#0D9488]/30 focus:border-[#0D9488] transition-all"
               />
               <datalist id="specializari-optiuni">
                 <option value="Filologie" />
@@ -220,10 +254,11 @@ export const TechnicalHeaderSection: React.FC<TechnicalHeaderSectionProps> = ({
             <div className="relative">
               <input
                 type="text"
-                value={headerData.manualSuport}
+                value={headerData.manualSuport || ""}
                 onChange={(e) => handleFieldChange("manualSuport", e.target.value)}
+                onFocus={(e) => e.target.select()}
                 placeholder="ex: Manual Ed. Art Klett / Cambridge C1"
-                className="w-full pl-9 pr-3.5 py-2.5 bg-[#F8FAF9] border border-[#E2E8F0] rounded-xl text-xs sm:text-sm text-[#1E293B] placeholder-slate-400 focus:outline-hidden focus:ring-2 focus:ring-[#0D9488]/30 focus:border-[#0D9488] focus:bg-white transition-all duration-150"
+                className="w-full pl-9 pr-3.5 py-2.5 bg-[#F8FAF9] border border-[#E2E8F0] rounded-xl text-xs sm:text-sm text-[#1E293B] placeholder:text-slate-400 focus:placeholder-transparent focus:outline-hidden focus:ring-2 focus:ring-[#0D9488]/30 focus:border-[#0D9488] focus:bg-white transition-all duration-150"
               />
               <BookOpen className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
             </div>
@@ -236,10 +271,11 @@ export const TechnicalHeaderSection: React.FC<TechnicalHeaderSectionProps> = ({
             <div className="relative">
               <input
                 type="text"
-                value={headerData.profesor}
+                value={headerData.profesor || ""}
                 onChange={(e) => handleFieldChange("profesor", e.target.value)}
+                onFocus={(e) => e.target.select()}
                 placeholder="ex: Prof. Adrian Podar"
-                className="w-full pl-9 pr-3.5 py-2.5 bg-[#F8FAF9] border border-[#E2E8F0] rounded-xl text-xs sm:text-sm text-[#1E293B] placeholder-slate-400 focus:outline-hidden focus:ring-2 focus:ring-[#0D9488]/30 focus:border-[#0D9488] focus:bg-white transition-all duration-150"
+                className="w-full pl-9 pr-3.5 py-2.5 bg-[#F8FAF9] border border-[#E2E8F0] rounded-xl text-xs sm:text-sm text-[#1E293B] placeholder:text-slate-400 focus:placeholder-transparent focus:outline-hidden focus:ring-2 focus:ring-[#0D9488]/30 focus:border-[#0D9488] focus:bg-white transition-all duration-150"
               />
               <User className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
             </div>
@@ -300,14 +336,15 @@ export const TechnicalHeaderSection: React.FC<TechnicalHeaderSectionProps> = ({
             <div>
               <label className="block text-xs font-semibold text-[#1E293B] mb-1.5 flex items-center gap-1.5">
                 <UserCheck className="w-3.5 h-3.5 text-[#0D9488]" />
-                <span>Director (pentru Aviz) *</span>
+                <span>Director (pentru Aviz)</span>
               </label>
               <input
                 type="text"
-                value={headerData.director}
+                value={headerData.director || ""}
                 onChange={(e) => handleFieldChange("director", e.target.value)}
+                onFocus={(e) => e.target.select()}
                 placeholder="Prof. dr. Popescu Ion"
-                className="w-full px-3.5 py-2.5 bg-[#F8FAF9] border border-[#E2E8F0] rounded-xl text-xs sm:text-sm text-[#1E293B] placeholder-slate-400 focus:outline-hidden focus:ring-2 focus:ring-[#0D9488]/30 focus:border-[#0D9488] focus:bg-white transition-all duration-150"
+                className="w-full px-3.5 py-2.5 bg-[#F8FAF9] border border-[#E2E8F0] rounded-xl text-xs sm:text-sm text-[#1E293B] placeholder:text-slate-400 focus:placeholder-transparent focus:outline-hidden focus:ring-2 focus:ring-[#0D9488]/30 focus:border-[#0D9488] focus:bg-white transition-all duration-150"
               />
             </div>
 
@@ -315,14 +352,15 @@ export const TechnicalHeaderSection: React.FC<TechnicalHeaderSectionProps> = ({
             <div>
               <label className="block text-xs font-semibold text-[#1E293B] mb-1.5 flex items-center gap-1.5">
                 <UserCheck className="w-3.5 h-3.5 text-[#0D9488]" />
-                <span>Responsabil de catedră / comisie *</span>
+                <span>Responsabil de catedră / comisie</span>
               </label>
               <input
                 type="text"
-                value={headerData.respCatedra}
+                value={headerData.respCatedra || ""}
                 onChange={(e) => handleFieldChange("respCatedra", e.target.value)}
+                onFocus={(e) => e.target.select()}
                 placeholder="Prof. Georgescu Elena"
-                className="w-full px-3.5 py-2.5 bg-[#F8FAF9] border border-[#E2E8F0] rounded-xl text-xs sm:text-sm text-[#1E293B] placeholder-slate-400 focus:outline-hidden focus:ring-2 focus:ring-[#0D9488]/30 focus:border-[#0D9488] focus:bg-white transition-all duration-150"
+                className="w-full px-3.5 py-2.5 bg-[#F8FAF9] border border-[#E2E8F0] rounded-xl text-xs sm:text-sm text-[#1E293B] placeholder:text-slate-400 focus:placeholder-transparent focus:outline-hidden focus:ring-2 focus:ring-[#0D9488]/30 focus:border-[#0D9488] focus:bg-white transition-all duration-150"
               />
             </div>
 
@@ -333,10 +371,11 @@ export const TechnicalHeaderSection: React.FC<TechnicalHeaderSectionProps> = ({
               </label>
               <input
                 type="text"
-                value={headerData.nrInregistrare}
+                value={headerData.nrInregistrare || ""}
                 onChange={(e) => handleFieldChange("nrInregistrare", e.target.value)}
+                onFocus={(e) => e.target.select()}
                 placeholder="ex: Nr. 1420 / 08.09.2026"
-                className="w-full px-3.5 py-2.5 bg-[#F8FAF9] border border-[#E2E8F0] rounded-xl text-xs sm:text-sm text-[#1E293B] placeholder-slate-400 focus:outline-hidden focus:ring-2 focus:ring-[#0D9488]/30 focus:border-[#0D9488] focus:bg-white transition-all duration-150"
+                className="w-full px-3.5 py-2.5 bg-[#F8FAF9] border border-[#E2E8F0] rounded-xl text-xs sm:text-sm text-[#1E293B] placeholder:text-slate-400 focus:placeholder-transparent focus:outline-hidden focus:ring-2 focus:ring-[#0D9488]/30 focus:border-[#0D9488] focus:bg-white transition-all duration-150"
               />
             </div>
           </div>

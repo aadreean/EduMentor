@@ -93,10 +93,11 @@ export const TechnicalHeaderEditor: React.FC<TechnicalHeaderEditorProps> = ({
               </label>
               <input
                 type="text"
-                value={headerData.unitateInvatamant}
+                value={headerData.unitateInvatamant || ""}
                 onChange={(e) => handleChange("unitateInvatamant", e.target.value)}
+                onFocus={(e) => e.target.select()}
                 placeholder="ex: Colegiul Național „Mihai Viteazul”"
-                className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-slate-800 placeholder-slate-400 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 text-xs"
+                className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-slate-800 placeholder:text-slate-400 focus:placeholder-transparent focus:outline-hidden focus:ring-2 focus:ring-indigo-500 text-xs"
               />
             </div>
 
@@ -106,10 +107,11 @@ export const TechnicalHeaderEditor: React.FC<TechnicalHeaderEditorProps> = ({
               </label>
               <input
                 type="text"
-                value={headerData.director}
+                value={headerData.director || ""}
                 onChange={(e) => handleChange("director", e.target.value)}
+                onFocus={(e) => e.target.select()}
                 placeholder="ex: Prof. dr. Popescu Ion"
-                className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-slate-800 placeholder-slate-400 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 text-xs"
+                className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-slate-800 placeholder:text-slate-400 focus:placeholder-transparent focus:outline-hidden focus:ring-2 focus:ring-indigo-500 text-xs"
               />
             </div>
 
@@ -119,10 +121,11 @@ export const TechnicalHeaderEditor: React.FC<TechnicalHeaderEditorProps> = ({
               </label>
               <input
                 type="text"
-                value={headerData.profesor}
+                value={headerData.profesor || ""}
                 onChange={(e) => handleChange("profesor", e.target.value)}
+                onFocus={(e) => e.target.select()}
                 placeholder="ex: Prof. Ionescu Maria"
-                className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-slate-800 placeholder-slate-400 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 text-xs"
+                className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-slate-800 placeholder:text-slate-400 focus:placeholder-transparent focus:outline-hidden focus:ring-2 focus:ring-indigo-500 text-xs"
               />
             </div>
 
@@ -132,10 +135,11 @@ export const TechnicalHeaderEditor: React.FC<TechnicalHeaderEditorProps> = ({
               </label>
               <input
                 type="text"
-                value={headerData.respCatedra}
+                value={headerData.respCatedra || ""}
                 onChange={(e) => handleChange("respCatedra", e.target.value)}
+                onFocus={(e) => e.target.select()}
                 placeholder="ex: Prof. Georgescu Elena"
-                className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-slate-800 placeholder-slate-400 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 text-xs"
+                className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-slate-800 placeholder:text-slate-400 focus:placeholder-transparent focus:outline-hidden focus:ring-2 focus:ring-indigo-500 text-xs"
               />
             </div>
 
@@ -145,10 +149,11 @@ export const TechnicalHeaderEditor: React.FC<TechnicalHeaderEditorProps> = ({
               </label>
               <input
                 type="text"
-                value={headerData.manualSuport}
+                value={headerData.manualSuport || ""}
                 onChange={(e) => handleChange("manualSuport", e.target.value)}
+                onFocus={(e) => e.target.select()}
                 placeholder="ex: Manual Ed. Art Klett / Oxford Univ. Press"
-                className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-slate-800 placeholder-slate-400 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 text-xs"
+                className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-slate-800 placeholder:text-slate-400 focus:placeholder-transparent focus:outline-hidden focus:ring-2 focus:ring-indigo-500 text-xs"
               />
             </div>
 
@@ -160,8 +165,9 @@ export const TechnicalHeaderEditor: React.FC<TechnicalHeaderEditorProps> = ({
                 type="text"
                 value={headerData.nrInregistrare || ""}
                 onChange={(e) => handleChange("nrInregistrare", e.target.value)}
+                onFocus={(e) => e.target.select()}
                 placeholder="ex: 1245 / 15.09.2026 sau ......................."
-                className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-slate-800 placeholder-slate-400 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 text-xs"
+                className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-slate-800 placeholder:text-slate-400 focus:placeholder-transparent focus:outline-hidden focus:ring-2 focus:ring-indigo-500 text-xs"
               />
             </div>
           </div>

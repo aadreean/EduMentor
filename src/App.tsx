@@ -21,26 +21,29 @@ export default function App() {
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
 
-  // Parametrii didactici primari
-  const [clasa, setClasa] = useState("Clasa a VII-a");
-  const [oreSaptamana, setOreSaptamana] = useState(4);
+  // Parametrii didactici primari (câmpurile încep goale, cu text gri de îndrumare/placeholder)
+  const [clasa, setClasa] = useState("");
+  const [oreSaptamana, setOreSaptamana] = useState(2);
   const [tipDocument, setTipDocument] = useState<DocumentType>("Planificare anuală");
-  const [disciplina, setDisciplina] = useState("Limba și literatura română");
+  const [disciplina, setDisciplina] = useState("");
 
   // Coordonate Tehnice Permanente (Antet Oficial)
   const [headerData, setHeaderData] = useState<TechnicalHeaderData>({
-    unitateInvatamant: "Colegiul Național „Mihai Viteazul”",
+    unitateInvatamant: "",
     anScolar: "2026-2027",
-    disciplina: "Limba și literatura română",
-    manualSuport: "Manual Ed. Art Klett",
-    clasa: "Clasa a VII-a",
-    nrOreSaptamana: "4 ore/săpt.",
-    profesor: "Prof. Adrian Podar",
-    director: "Prof. dr. Popescu Ion",
-    respCatedra: "Prof. Georgescu Elena",
-    nrInregistrare: ".......................",
+    disciplina: "",
+    manualSuport: "",
+    clasa: "",
+    filiera: "",
+    profil: "",
+    specializare: "",
+    nrOreSaptamana: "2 ore/săpt.",
+    profesor: "",
+    director: "",
+    respCatedra: "",
+    nrInregistrare: "",
     vacantaFebruarie: "Săptămâna 2 (22 - 28 Februarie 2027)",
-    isComplete: true,
+    isComplete: false,
   });
 
   // Multiple File Payloads

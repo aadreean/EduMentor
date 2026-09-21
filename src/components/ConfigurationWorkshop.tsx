@@ -182,10 +182,11 @@ export const ConfigurationWorkshop: React.FC<ConfigurationWorkshopProps> = ({
             </label>
             <input
               type="text"
-              value={headerData.unitateInvatamant}
+              value={headerData.unitateInvatamant || ""}
               onChange={(e) => handleHeaderFieldChange("unitateInvatamant", e.target.value)}
+              onFocus={(e) => e.target.select()}
               placeholder="ex: Colegiul Național „Mihai Viteazul”"
-              className="w-full px-3 py-2 bg-[#F8FAF9] border border-[#E2E8F0] rounded-lg text-xs text-[#1E293B] placeholder-slate-400 focus:outline-hidden focus:ring-2 focus:ring-[#0D9488]/30 focus:border-[#0D9488] focus:bg-white transition-all duration-150"
+              className="w-full px-3 py-2 bg-[#F8FAF9] border border-[#E2E8F0] rounded-lg text-xs text-[#1E293B] placeholder:text-slate-400 focus:placeholder-transparent focus:outline-hidden focus:ring-2 focus:ring-[#0D9488]/30 focus:border-[#0D9488] focus:bg-white transition-all duration-150"
             />
           </div>
 
@@ -197,10 +198,11 @@ export const ConfigurationWorkshop: React.FC<ConfigurationWorkshopProps> = ({
               </label>
               <input
                 type="text"
-                value={headerData.disciplina}
+                value={headerData.disciplina || ""}
                 onChange={(e) => handleHeaderFieldChange("disciplina", e.target.value)}
+                onFocus={(e) => e.target.select()}
                 placeholder="ex: Limba și literatura română"
-                className="w-full px-3 py-2 bg-[#F8FAF9] border border-[#E2E8F0] rounded-lg text-xs text-[#1E293B] placeholder-slate-400 focus:outline-hidden focus:ring-2 focus:ring-[#0D9488]/30 focus:border-[#0D9488] focus:bg-white transition-all duration-150"
+                className="w-full px-3 py-2 bg-[#F8FAF9] border border-[#E2E8F0] rounded-lg text-xs text-[#1E293B] placeholder:text-slate-400 focus:placeholder-transparent focus:outline-hidden focus:ring-2 focus:ring-[#0D9488]/30 focus:border-[#0D9488] focus:bg-white transition-all duration-150"
               />
             </div>
 
@@ -210,10 +212,11 @@ export const ConfigurationWorkshop: React.FC<ConfigurationWorkshopProps> = ({
               </label>
               <input
                 type="text"
-                value={headerData.manualSuport}
+                value={headerData.manualSuport || ""}
                 onChange={(e) => handleHeaderFieldChange("manualSuport", e.target.value)}
+                onFocus={(e) => e.target.select()}
                 placeholder="ex: Manual Ed. Art Klett"
-                className="w-full px-3 py-2 bg-[#F8FAF9] border border-[#E2E8F0] rounded-lg text-xs text-[#1E293B] placeholder-slate-400 focus:outline-hidden focus:ring-2 focus:ring-[#0D9488]/30 focus:border-[#0D9488] focus:bg-white transition-all duration-150"
+                className="w-full px-3 py-2 bg-[#F8FAF9] border border-[#E2E8F0] rounded-lg text-xs text-[#1E293B] placeholder:text-slate-400 focus:placeholder-transparent focus:outline-hidden focus:ring-2 focus:ring-[#0D9488]/30 focus:border-[#0D9488] focus:bg-white transition-all duration-150"
               />
             </div>
           </div>
@@ -226,10 +229,11 @@ export const ConfigurationWorkshop: React.FC<ConfigurationWorkshopProps> = ({
               </label>
               <input
                 type="text"
-                value={headerData.clasa}
+                value={headerData.clasa || ""}
                 onChange={(e) => handleHeaderFieldChange("clasa", e.target.value)}
+                onFocus={(e) => e.target.select()}
                 placeholder="ex: Clasa a VII-a"
-                className="w-full px-3 py-2 bg-[#F8FAF9] border border-[#E2E8F0] rounded-lg text-xs text-[#1E293B] placeholder-slate-400 focus:outline-hidden focus:ring-2 focus:ring-[#0D9488]/30 focus:border-[#0D9488] focus:bg-white transition-all duration-150"
+                className="w-full px-3 py-2 bg-[#F8FAF9] border border-[#E2E8F0] rounded-lg text-xs text-[#1E293B] placeholder:text-slate-400 focus:placeholder-transparent focus:outline-hidden focus:ring-2 focus:ring-[#0D9488]/30 focus:border-[#0D9488] focus:bg-white transition-all duration-150"
               />
             </div>
 
@@ -239,10 +243,11 @@ export const ConfigurationWorkshop: React.FC<ConfigurationWorkshopProps> = ({
               </label>
               <input
                 type="text"
-                value={headerData.profesor}
+                value={headerData.profesor || ""}
                 onChange={(e) => handleHeaderFieldChange("profesor", e.target.value)}
+                onFocus={(e) => e.target.select()}
                 placeholder="ex: Prof. Ionescu Maria"
-                className="w-full px-3 py-2 bg-[#F8FAF9] border border-[#E2E8F0] rounded-lg text-xs text-[#1E293B] placeholder-slate-400 focus:outline-hidden focus:ring-2 focus:ring-[#0D9488]/30 focus:border-[#0D9488] focus:bg-white transition-all duration-150"
+                className="w-full px-3 py-2 bg-[#F8FAF9] border border-[#E2E8F0] rounded-lg text-xs text-[#1E293B] placeholder:text-slate-400 focus:placeholder-transparent focus:outline-hidden focus:ring-2 focus:ring-[#0D9488]/30 focus:border-[#0D9488] focus:bg-white transition-all duration-150"
               />
             </div>
           </div>
@@ -315,10 +320,11 @@ export const ConfigurationWorkshop: React.FC<ConfigurationWorkshopProps> = ({
                   </label>
                   <input
                     type="text"
-                    value={headerData.director}
+                    value={headerData.director || ""}
                     onChange={(e) => handleHeaderFieldChange("director", e.target.value)}
+                    onFocus={(e) => e.target.select()}
                     placeholder="Prof. dr. Popescu Ion"
-                    className="w-full px-2.5 py-1.5 bg-white border border-[#E2E8F0] rounded text-xs text-[#1E293B]"
+                    className="w-full px-2.5 py-1.5 bg-white border border-[#E2E8F0] rounded text-xs text-[#1E293B] placeholder:text-slate-400 focus:placeholder-transparent"
                   />
                 </div>
                 <div>
@@ -327,10 +333,11 @@ export const ConfigurationWorkshop: React.FC<ConfigurationWorkshopProps> = ({
                   </label>
                   <input
                     type="text"
-                    value={headerData.respCatedra}
+                    value={headerData.respCatedra || ""}
                     onChange={(e) => handleHeaderFieldChange("respCatedra", e.target.value)}
+                    onFocus={(e) => e.target.select()}
                     placeholder="Prof. Georgescu Elena"
-                    className="w-full px-2.5 py-1.5 bg-white border border-[#E2E8F0] rounded text-xs text-[#1E293B]"
+                    className="w-full px-2.5 py-1.5 bg-white border border-[#E2E8F0] rounded text-xs text-[#1E293B] placeholder:text-slate-400 focus:placeholder-transparent"
                   />
                 </div>
               </div>

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import rehypeRaw from "rehype-raw";
 import {
   Copy,
   Check,
@@ -11,6 +12,7 @@ import {
   Table as TableIcon,
 } from "lucide-react";
 import { copyTableToClipboard } from "../utils/fileHelpers";
+import { sanitizeHtmlTags } from "../utils/sanitizeText";
 
 interface MarkdownTableRendererProps {
   content: string;
@@ -184,7 +186,9 @@ export const MarkdownTableRenderer: React.FC<MarkdownTableRendererProps> = ({
         className="p-4 sm:p-5 overflow-x-auto text-xs text-slate-800 leading-relaxed max-w-full"
       >
         <div className="prose prose-slate max-w-none prose-table:border-collapse prose-th:bg-slate-100/90 prose-th:border prose-th:border-slate-300 prose-th:p-2.5 prose-th:text-[11px] prose-th:font-bold prose-th:text-slate-900 prose-td:border prose-td:border-slate-300 prose-td:p-2 prose-td:text-[11px] prose-td:align-top prose-tr:hover:bg-slate-50/60">
-          <Markdown remarkPlugins={[remarkGfm]}>{content}</Markdown>
+          <Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
+            {sanitizeHtmlTags(content)}
+          </Markdown>
         </div>
       </div>
     </div>
