@@ -26,7 +26,6 @@ interface ChatInterfaceProps {
   hasPrograma: boolean;
   hasSuport: boolean;
   onSelectStandardTemplate: (templateId: string) => void;
-  onLoadSampleData: () => void;
 }
 
 export const ChatInterface: React.FC<ChatInterfaceProps> = ({
@@ -40,7 +39,6 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
   hasPrograma,
   hasSuport,
   onSelectStandardTemplate,
-  onLoadSampleData,
 }) => {
   const [inputText, setInputText] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -218,16 +216,6 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
               className="shrink-0 px-2.5 py-1.5 bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-900 rounded-xl text-[11px] font-medium transition-colors"
             >
               + Atașează Șablon Oficial MEC
-            </button>
-          )}
-
-          {(!hasPrograma || !hasSuport) && (
-            <button
-              type="button"
-              onClick={onLoadSampleData}
-              className="shrink-0 px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-[11px] font-medium transition-colors"
-            >
-              Încarcă pachet exemplu (Română 7)
             </button>
           )}
         </div>

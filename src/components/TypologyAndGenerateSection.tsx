@@ -9,7 +9,6 @@ interface TypologyAndGenerateSectionProps {
   oreSaptamana: number;
   isLoading: boolean;
   onGenerate: () => void;
-  onLoadSampleData: () => void;
 }
 
 export const TypologyAndGenerateSection: React.FC<TypologyAndGenerateSectionProps> = ({
@@ -19,7 +18,6 @@ export const TypologyAndGenerateSection: React.FC<TypologyAndGenerateSectionProp
   oreSaptamana,
   isLoading,
   onGenerate,
-  onLoadSampleData,
 }) => {
   return (
     <section
@@ -46,14 +44,6 @@ export const TypologyAndGenerateSection: React.FC<TypologyAndGenerateSectionProp
             </p>
           </div>
         </div>
-
-        <button
-          type="button"
-          onClick={onLoadSampleData}
-          className="btn-interaction text-xs font-semibold text-slate-600 hover:text-[#0D9488] bg-[#F8FAF9] hover:bg-[#F0FDFA] px-3.5 py-1.5 rounded-lg border border-[#E2E8F0] hover:border-[#CCFBF1] transition-all self-start sm:self-auto cursor-pointer"
-        >
-          Încarcă Exemplu Demo Complet
-        </button>
       </div>
 
       {/* Selector Tipologie Didactică - 4 Carduri Mari */}

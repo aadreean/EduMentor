@@ -116,15 +116,3 @@ export function formatClasaHeader(
   }
   return baseClasa;
 }
-
-export interface SamplePack {
-  id: string;
-  name: string;
-  disciplina: string;
-  clasa: string;
-  oreSaptamana: number;
-  tipDocument: DocumentType;
-  programaSnippet: string;
-  suportSnippet: string;
-  sablonSnippet: string;
-}

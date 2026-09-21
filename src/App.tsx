@@ -14,7 +14,7 @@ import { TypologyAndGenerateSection } from "./components/TypologyAndGenerateSect
 import { PreviewHall } from "./components/PreviewHall";
 import { EduChatAssistant } from "./components/EduChatAssistant";
 import { ChatMessage, DocumentType, FilePayload, TechnicalHeaderData } from "./types";
-import { SAMPLE_PACKS, STANDARD_TEMPLATES } from "./data/curriculumData";
+import { STANDARD_TEMPLATES } from "./data/curriculumData";
 import { generatePedagogicalPlan } from "./utils/planGenerator";
 
 export default function App() {
@@ -77,82 +77,6 @@ export default function App() {
       timestamp: new Date().toLocaleTimeString("ro-RO", { hour: "2-digit", minute: "2-digit" }),
     };
     setMessages((prev) => [...prev, confirmationMsg]);
-  };
-
-  const handleLoadSampleData = (sampleIndex: number = 0) => {
-    const sample = SAMPLE_PACKS[sampleIndex] || SAMPLE_PACKS[0];
-    setClasa(sample.clasa);
-    setOreSaptamana(sample.oreSaptamana);
-    setTipDocument(sample.tipDocument);
-    setDisciplina(sample.disciplina);
-
-    setHeaderData({
-      unitateInvatamant:
-        sample.id === "engleza-9"
-          ? "Liceul Teoretic „Grigore Moisil”"
-          : sample.id === "istorie-8"
-          ? "Școala Gimnazială Nr. 192"
-          : sample.id === "primar-integrat-2"
-          ? "Școala Gimnazială „Ion Creangă”"
-          : "Colegiul Național „Mihai Viteazul”",
-      anScolar: "2026-2027",
-      disciplina: sample.disciplina,
-      manualSuport:
-        sample.id === "engleza-9"
-          ? "Cambridge B1+/B2 Advance"
-          : sample.id === "istorie-8"
-          ? "Manual Istorie Ed. Litera"
-          : sample.id === "primar-integrat-2"
-          ? "Ghid integrat și manuale EDP"
-          : "Manual Ed. Art Klett",
-      clasa: sample.clasa,
-      filiera: sample.id === "engleza-9" ? "Teoretică" : "",
-      profil: sample.id === "engleza-9" ? "Umanist" : "",
-      specializare: sample.id === "engleza-9" ? "Filologie" : "",
-      nrOreSaptamana: `${sample.oreSaptamana} ore/săpt.`,
-      profesor:
-        sample.id === "engleza-9"
-          ? "Prof. Andrei Radu"
-          : sample.id === "istorie-8"
-          ? "Prof. Popa Cristian"
-          : "Prof. Adrian Podar",
-      director: "Prof. dr. Popescu Ion",
-      respCatedra:
-        sample.id === "engleza-9"
-          ? "Prof. Brown Sarah"
-          : sample.id === "primar-integrat-2"
-          ? "Prof. Munteanu Carmen"
-          : "Prof. Georgescu Elena",
-      nrInregistrare: ".......................",
-      vacantaFebruarie: "Săptămâna 2 (22 - 28 Februarie 2027)",
-      isComplete: true,
-    });
-
-    setProgramaFiles([]);
-    setProgramaText(sample.programaSnippet);
-
-    setSuportFiles([]);
-    setSuportText(sample.suportSnippet);
-
-    setSablonFiles([]);
-    setSablonText(sample.sablonSnippet);
-    setSelectedTemplateId(
-      sample.tipDocument === "Schiță de lecție"
-        ? "sablon-schita-lectie"
-        : sample.tipDocument === "Planificare pe unitate"
-        ? "sablon-unitate"
-        : sample.tipDocument === "Planificare integrată (Primar)"
-        ? "sablon-planificare-integrata"
-        : "sablon-anual-oficial"
-    );
-
-    const sampleMsg: ChatMessage = {
-      id: `sample-${Date.now()}`,
-      role: "assistant",
-      content: `Am încărcat datele demonstrative complete pentru **${sample.name}** (${sample.clasa}, ${sample.oreSaptamana} ore/săptămână). Toate câmpurile și fișierele sunt configurate. Apasă pe butonul **„GENEREAZĂ PLANIFICAREA ACUM”** de mai jos!`,
-      timestamp: new Date().toLocaleTimeString("ro-RO", { hour: "2-digit", minute: "2-digit" }),
-    };
-    setMessages((prev) => [...prev, sampleMsg]);
   };
 
   const handleSendMessage = async (userInput: string, chatAttachedFiles?: FilePayload[]) => {
@@ -388,7 +312,6 @@ MANDAT STRICT: Este obligatoriu să generezi atât antetul tehnic oficial comple
     <div className="min-h-screen flex flex-col bg-[#F8FAF9] font-sans text-[#1E293B]">
       <Header
         onOpenCalendar={() => setIsCalendarOpen(true)}
-        onLoadSample={() => handleLoadSampleData(0)}
         onOpenChat={() => setIsChatOpen(true)}
       />
 
@@ -434,7 +357,6 @@ MANDAT STRICT: Este obligatoriu să generezi atât antetul tehnic oficial comple
           oreSaptamana={oreSaptamana}
           isLoading={isLoading}
           onGenerate={handleGenerateClick}
-          onLoadSampleData={() => handleLoadSampleData(0)}
         />
 
         {/* SECȚIUNEA 4: DOCUMENTUL DIDACTIC GENERAT & EXPORT */}
@@ -452,7 +374,6 @@ MANDAT STRICT: Este obligatoriu să generezi atât antetul tehnic oficial comple
             setHeaderData((prev) => ({ ...prev, orientare: newOrient }))
           }
           onGenerate={handleGenerateClick}
-          onLoadSampleData={() => handleLoadSampleData(0)}
         />
       </main>
 

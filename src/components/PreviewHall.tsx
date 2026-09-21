@@ -40,7 +40,6 @@ interface PreviewHallProps {
   headerData: TechnicalHeaderData;
   onOrientationChange?: (orientation: PageOrientation) => void;
   onGenerate: () => void;
-  onLoadSampleData: () => void;
 }
 
 export const PreviewHall: React.FC<PreviewHallProps> = ({
