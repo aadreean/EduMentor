@@ -27,6 +27,14 @@ TABELUL TREBUIE SĂ FIE STRUCTURAT FĂRĂ EXCEPȚIE PE TOATE CELE 5 MODULE (Modu
 DACĂ RĂSPUNSUL TĂU CONȚINE DOAR ANTETUL FĂRĂ TABEL, ESTE CONSIDERAT EȘUAT ȘI INUTILIZABIL. ÎNCEPE TABELUL IMEDIAT DUPĂ ANTET ȘI COMPLETEAZĂ TOATE CELE 5 MODULE!
 ================================================================================
 
+================================================================================
+REGULĂ STRICTĂ PRIVIND CONȚINUTURILE ȘI UNITĂȚILE DE ÎNVĂȚARE (FĂRĂ UNITĂȚI INVENTATE):
+- Conținuturile, temele și denumirile unităților de învățare se vor extrage EXCLUSIV și STRICT din documentele încărcate de profesor (cuprinsul manualului, suportul de curs, fișierele atașate PDF/DOCX/imagini sau programa școlară).
+- ESTE STRICT INTERZISĂ folosirea sau inventarea unor denumiri de unități predefinite sau manuale arbitrare (cum ar fi „Pushing the Boundaries”, „Mind, Brain & Human Nature” sau alte titluri de manuale străine/Cambridge), DACĂ acestea nu se regăsesc în mod explicit și textual în cuprinsul manualului/suportului atașat de utilizator!
+- Dacă utilizatorul a atașat un cuprins sau un manual, structurează planificarea EXACT pe unitățile și conținuturile reale din acel manual atașat.
+- Dacă utilizatorul NU a atașat un manual specific, conținuturile se vor conforma strict Programei Școlare oficiale a disciplinei și clasei selectate, folosind formulări didactice naționale standard, fără trimiteri nejustificate la manuale arbitrare.
+================================================================================
+
 1. CARACTER UNIVERSAL ȘI FLEXIBILITATE CURRICULARĂ TOTALĂ:
 - Aplicația funcționează pentru ORICE DISCIPLINĂ din învățământul preuniversitar (științe exacte, discipline umaniste, tehnice, arte, sport, socio-umane etc.).
 - Fără restricții predefinite pe clase sau discipline: Generarea conținuturilor, a detalierilor tematice, a competențelor și a activităților de învățare se va face EXCLUSIV în funcție de documentele încărcate de profesor (Programa școlară, Manualul sau corpusul de documente) și de clasa menționată în parametrii de sesiune. Nivelul de complexitate și terminologia se vor adapta natural la specificul disciplinei și al vârstei elevilor.
@@ -278,6 +286,12 @@ GENEREAZĂ PLANIFICAREA PE UNITĂȚI DE ÎNVĂȚARE COMPLETĂ cu tabelul Markdow
 `;
     }
 
+    contextDescription += `
+REGULĂ DE AUR PRIVIND CONȚINUTUL ȘI UNITĂȚILE:
+- Extrage denumirile unităților și conținuturile tematice EXCLUSIV și STRICT din documentele încărcate de profesor (corpusul manualului/suportului sau programa școlară).
+- ESTE STRICT INTERZISĂ inventarea unor unități sau conținuturi arbitrare precum „Pushing the Boundaries”, „Mind, Brain & Human Nature” sau alte titluri străine, decât dacă apar negru pe alb în fișierele atașate de profesor!
+`;
+
     userParts.push({ text: contextDescription });
 
     // Handle all attached files (support multiple files with robust concatenation)
@@ -307,12 +321,28 @@ GENEREAZĂ PLANIFICAREA PE UNITĂȚI DE ÎNVĂȚARE COMPLETĂ cu tabelul Markdow
       ),
     ].filter(Boolean).join("\n\n");
 
+    function getValidInlineMimeType(file: any): string | null {
+      const name = (file?.name || "").toLowerCase();
+      const rawType = (file?.type || "").toLowerCase();
+
+      if (rawType.includes("pdf") || name.endsWith(".pdf")) {
+        return "application/pdf";
+      }
+      if (rawType.startsWith("image/") || /\.(jpg|jpeg|png|webp|heic|heif)$/i.test(name)) {
+        if (rawType.includes("png") || name.endsWith(".png")) return "image/png";
+        if (rawType.includes("webp") || name.endsWith(".webp")) return "image/webp";
+        return "image/jpeg";
+      }
+      return null;
+    }
+
     // Adaugă fișierele șablon ca inlineData și bloc text concatenat
     allSablonFiles.forEach((file: any, index: number) => {
-      if (file && file.data) {
+      const mime = getValidInlineMimeType(file);
+      if (mime && file.data) {
         userParts.push({
           inlineData: {
-            mimeType: file.type || "application/pdf",
+            mimeType: mime,
             data: file.data,
           },
         });
@@ -324,10 +354,11 @@ GENEREAZĂ PLANIFICAREA PE UNITĂȚI DE ÎNVĂȚARE COMPLETĂ cu tabelul Markdow
 
     // Adaugă fișierele programă ca inlineData și bloc text concatenat
     allProgramaFiles.forEach((file: any, index: number) => {
-      if (file && file.data) {
+      const mime = getValidInlineMimeType(file);
+      if (mime && file.data) {
         userParts.push({
           inlineData: {
-            mimeType: file.type || "application/pdf",
+            mimeType: mime,
             data: file.data,
           },
         });
@@ -339,26 +370,28 @@ GENEREAZĂ PLANIFICAREA PE UNITĂȚI DE ÎNVĂȚARE COMPLETĂ cu tabelul Markdow
 
     // Adaugă fișierele suport ca inlineData și bloc text concatenat
     allSuportFiles.forEach((file: any, index: number) => {
-      if (file && file.data) {
+      const mime = getValidInlineMimeType(file);
+      if (mime && file.data) {
         userParts.push({
           inlineData: {
-            mimeType: file.type || "application/pdf",
+            mimeType: mime,
             data: file.data,
           },
         });
       }
     });
     if (concatenatedSuportText.trim()) {
-      userParts.push({ text: `[CORPUS CONCATENAT SUPORT / MANUAL (${allSuportFiles.length} fișiere încărcate)]:\n${concatenatedSuportText}` });
+      userParts.push({ text: `[CORPUS CONCATENAT SUPORT / CUPRINS MANUAL (${allSuportFiles.length} fișiere încărcate)]:\n${concatenatedSuportText}` });
     }
 
     // Adaugă fișierele suplimentare atașate din chat (PDF, DOCX, Imagini)
     if (Array.isArray(chatAttachedFiles) && chatAttachedFiles.length > 0) {
       chatAttachedFiles.forEach((file: any, index: number) => {
-        if (file && file.data && (file.type?.startsWith("image/") || file.type?.includes("pdf") || file.name?.toLowerCase().endsWith(".pdf"))) {
+        const mime = getValidInlineMimeType(file);
+        if (mime && file.data) {
           userParts.push({
             inlineData: {
-              mimeType: file.type || (file.name?.toLowerCase().endsWith(".pdf") ? "application/pdf" : "image/jpeg"),
+              mimeType: mime,
               data: file.data,
             },
           });
@@ -377,7 +410,8 @@ GENEREAZĂ PLANIFICAREA PE UNITĂȚI DE ÎNVĂȚARE COMPLETĂ cu tabelul Markdow
     });
 
     let responseText = "";
-    const candidateModels = ["gemini-3.5-flash", "gemini-3.8-flash", "gemini-flash-latest"];
+    // Modele verificate cu suport multimodal pentru imagini/PDF și cotă activă
+    const candidateModels = ["gemini-2.5-flash", "gemini-2.5-pro", "gemini-3.8-flash", "gemini-flash-latest"];
     let lastError: any = null;
 
     for (const modelName of candidateModels) {
@@ -388,10 +422,6 @@ GENEREAZĂ PLANIFICAREA PE UNITĂȚI DE ÎNVĂȚARE COMPLETĂ cu tabelul Markdow
           temperature: 0.2,
           maxOutputTokens: 8192,
         };
-        // Use Google Search grounding for gemini-3.5-flash to get up-to-date curricular and educational data
-        if (modelName === "gemini-3.5-flash") {
-          config.tools = [{ googleSearch: {} }];
-        }
         if (isGemini3) {
           config.thinkingConfig = { thinkingLevel: ThinkingLevel.LOW };
         }
@@ -523,18 +553,18 @@ app.post("/api/chat", async (req, res) => {
 
     const ai = getGeminiClient();
 
-    let primaryModel = "gemini-3.5-flash";
-    let fallbackModel = "gemini-3.5-flash";
+    let primaryModel = "gemini-3.8-flash";
+    let fallbackModel = "gemini-flash-latest";
 
     if (taskType === "fast") {
       primaryModel = "gemini-3.1-flash-lite";
-      fallbackModel = "gemini-3.5-flash";
+      fallbackModel = "gemini-3.8-flash";
     } else if (taskType === "complex") {
       primaryModel = "gemini-3.1-pro-preview";
-      fallbackModel = "gemini-3.5-flash";
-    } else {
-      primaryModel = "gemini-3.5-flash";
       fallbackModel = "gemini-3.8-flash";
+    } else {
+      primaryModel = "gemini-3.8-flash";
+      fallbackModel = "gemini-flash-latest";
     }
 
     const CHAT_SYSTEM_INSTRUCTION = `Ești „Asistentul Metodist EduMentor” (dezvoltat pentru cadrele didactice din România, autor prof. Adrian Podar).
@@ -585,12 +615,15 @@ Păstrează un ton prietenos, colegial și bine structurat (folosind liste, tabe
       }
     }
 
-    const candidateModelsToTry = [primaryModel];
+    const candidateModelsToTry = ["gemini-2.5-flash", primaryModel];
     if (fallbackModel !== primaryModel && !candidateModelsToTry.includes(fallbackModel)) {
       candidateModelsToTry.push(fallbackModel);
     }
-    if (!candidateModelsToTry.includes("gemini-3.5-flash")) {
-      candidateModelsToTry.push("gemini-3.5-flash");
+    if (!candidateModelsToTry.includes("gemini-2.5-pro")) {
+      candidateModelsToTry.push("gemini-2.5-pro");
+    }
+    if (!candidateModelsToTry.includes("gemini-3.8-flash")) {
+      candidateModelsToTry.push("gemini-3.8-flash");
     }
 
     let resultText = "";
