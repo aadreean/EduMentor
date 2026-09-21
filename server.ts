@@ -99,8 +99,7 @@ D) PLANIFICARE INTEGRATĂ PENTRU ÎNVĂȚĂMÂNTUL PRIMAR:
 - Calculează riguros produsul dintre numărul de ore pe săptămână și săptămânile de curs.
 - Include la finalul planificării anuale «Notă metodologică de bilanț orar».
 - Semnături finale:
-  **Întocmit, Profesor:** [Nume Profesor]                          **Avizat Director, Data:** [Nume Director]
-- Semnătură curriculară: autor prof. Adrian Podar`;
+  **Întocmit, Profesor:** [Nume Profesor]                          **Avizat Director, Data:** [Nume Director]`;
 
 function getGeminiClient(): GoogleGenAI {
   const apiKey = process.env.GEMINI_API_KEY;
@@ -260,7 +259,6 @@ După tabel, adaugă Notă metodologică de bilanț orar:
 * Total ore predare: ${totalTeachingHours} ore
 * Total ore săptămâni speciale: ${totalSpecialHours} ore
 * Total general normă: ${totalAnnualHours} ore
-* Semnătura curriculară: autor prof. Adrian Podar
 `;
     } else if (
       tipDocument === "Planificare integrată (Primar)" ||

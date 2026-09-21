@@ -107,10 +107,10 @@ export const TechnicalHeaderEditor: React.FC<TechnicalHeaderEditorProps> = ({
               </label>
               <input
                 type="text"
-                value={headerData.director || ""}
+                value={headerData.director !== undefined ? headerData.director : "prof. "}
                 onChange={(e) => handleChange("director", e.target.value)}
                 onFocus={(e) => e.target.select()}
-                placeholder="ex: Prof. dr. Popescu Ion"
+                placeholder="prof. "
                 className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-slate-800 placeholder:text-slate-400 focus:placeholder-transparent focus:outline-hidden focus:ring-2 focus:ring-indigo-500 text-xs"
               />
             </div>
@@ -121,10 +121,10 @@ export const TechnicalHeaderEditor: React.FC<TechnicalHeaderEditorProps> = ({
               </label>
               <input
                 type="text"
-                value={headerData.profesor || ""}
+                value={headerData.profesor !== undefined ? headerData.profesor : "prof. "}
                 onChange={(e) => handleChange("profesor", e.target.value)}
                 onFocus={(e) => e.target.select()}
-                placeholder="ex: Prof. Ionescu Maria"
+                placeholder="prof. "
                 className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-slate-800 placeholder:text-slate-400 focus:placeholder-transparent focus:outline-hidden focus:ring-2 focus:ring-indigo-500 text-xs"
               />
             </div>
@@ -135,10 +135,10 @@ export const TechnicalHeaderEditor: React.FC<TechnicalHeaderEditorProps> = ({
               </label>
               <input
                 type="text"
-                value={headerData.respCatedra || ""}
+                value={headerData.respCatedra !== undefined ? headerData.respCatedra : "prof. "}
                 onChange={(e) => handleChange("respCatedra", e.target.value)}
                 onFocus={(e) => e.target.select()}
-                placeholder="ex: Prof. Georgescu Elena"
+                placeholder="prof. "
                 className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-slate-800 placeholder:text-slate-400 focus:placeholder-transparent focus:outline-hidden focus:ring-2 focus:ring-indigo-500 text-xs"
               />
             </div>

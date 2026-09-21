@@ -165,7 +165,6 @@ export function generatePedagogicalPlan(params: PlanGenerationParams): string {
 * **Total ore predare efectivă:** ${calc.totalTeachingHours} ore (${calc.effectiveTeachingWeeks} săptămâni efective)
 * **Total ore activități săptămâni speciale:** ${2 * hoursPerWeek} ore (2 săptămâni: „Școala altfel” și „Săptămâna verde”)
 * **Total general normă anuală:** ${calc.totalTeachingHours + 2 * hoursPerWeek} ore (${calc.totalWeeks} săptămâni școlare)
-* **Concept metodic & asistență curriculară:** autor prof. Adrian Podar
 
 **Întocmit, Profesor:** ${teacherName}                          **Avizat Director, Data:** ${directorName}
 `;
@@ -220,7 +219,6 @@ export function generatePedagogicalPlan(params: PlanGenerationParams): string {
 ### Notă metodologică pentru învățământul primar:
 * **Abordare integrată:** Conținuturile sunt organizate concentric pe teme transdisciplinare, asigurând trecerea firească de la observarea directă la conceptualizare.
 * **Evaluare:** Aprecierea se realizează prin calificative (FB, B, S, I) însoțite de descriptori de performanță și aprecieri motivaționale continue.
-* **Concept metodic & asistență curriculară:** autor prof. Adrian Podar
 
 **Întocmit, Profesor înv. primar:** ${teacherName}                  **Avizat Director, Data:** ${directorName}
 `;

@@ -243,10 +243,10 @@ export const ConfigurationWorkshop: React.FC<ConfigurationWorkshopProps> = ({
               </label>
               <input
                 type="text"
-                value={headerData.profesor || ""}
+                value={headerData.profesor !== undefined ? headerData.profesor : "prof. "}
                 onChange={(e) => handleHeaderFieldChange("profesor", e.target.value)}
                 onFocus={(e) => e.target.select()}
-                placeholder="ex: Prof. Ionescu Maria"
+                placeholder="prof. "
                 className="w-full px-3 py-2 bg-[#F8FAF9] border border-[#E2E8F0] rounded-lg text-xs text-[#1E293B] placeholder:text-slate-400 focus:placeholder-transparent focus:outline-hidden focus:ring-2 focus:ring-[#0D9488]/30 focus:border-[#0D9488] focus:bg-white transition-all duration-150"
               />
             </div>
@@ -320,10 +320,10 @@ export const ConfigurationWorkshop: React.FC<ConfigurationWorkshopProps> = ({
                   </label>
                   <input
                     type="text"
-                    value={headerData.director || ""}
+                    value={headerData.director !== undefined ? headerData.director : "prof. "}
                     onChange={(e) => handleHeaderFieldChange("director", e.target.value)}
                     onFocus={(e) => e.target.select()}
-                    placeholder="Prof. dr. Popescu Ion"
+                    placeholder="prof. "
                     className="w-full px-2.5 py-1.5 bg-white border border-[#E2E8F0] rounded text-xs text-[#1E293B] placeholder:text-slate-400 focus:placeholder-transparent"
                   />
                 </div>
@@ -333,10 +333,10 @@ export const ConfigurationWorkshop: React.FC<ConfigurationWorkshopProps> = ({
                   </label>
                   <input
                     type="text"
-                    value={headerData.respCatedra || ""}
+                    value={headerData.respCatedra !== undefined ? headerData.respCatedra : "prof. "}
                     onChange={(e) => handleHeaderFieldChange("respCatedra", e.target.value)}
                     onFocus={(e) => e.target.select()}
-                    placeholder="Prof. Georgescu Elena"
+                    placeholder="prof. "
                     className="w-full px-2.5 py-1.5 bg-white border border-[#E2E8F0] rounded text-xs text-[#1E293B] placeholder:text-slate-400 focus:placeholder-transparent"
                   />
                 </div>

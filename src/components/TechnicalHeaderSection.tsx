@@ -72,9 +72,9 @@ export const TechnicalHeaderSection: React.FC<TechnicalHeaderSectionProps> = ({
                 profil: "",
                 specializare: "",
                 nrOreSaptamana: `${oreSaptamana} ore/săpt.`,
-                profesor: "",
-                director: "",
-                respCatedra: "",
+                profesor: "prof. ",
+                director: "prof. ",
+                respCatedra: "prof. ",
                 nrInregistrare: "",
                 vacantaFebruarie: headerData.vacantaFebruarie || "Săptămâna 2 (22 - 28 Februarie 2027)",
                 isComplete: false,
@@ -271,10 +271,10 @@ export const TechnicalHeaderSection: React.FC<TechnicalHeaderSectionProps> = ({
             <div className="relative">
               <input
                 type="text"
-                value={headerData.profesor || ""}
+                value={headerData.profesor !== undefined ? headerData.profesor : "prof. "}
                 onChange={(e) => handleFieldChange("profesor", e.target.value)}
                 onFocus={(e) => e.target.select()}
-                placeholder="ex: Prof. Adrian Podar"
+                placeholder="prof. "
                 className="w-full pl-9 pr-3.5 py-2.5 bg-[#F8FAF9] border border-[#E2E8F0] rounded-xl text-xs sm:text-sm text-[#1E293B] placeholder:text-slate-400 focus:placeholder-transparent focus:outline-hidden focus:ring-2 focus:ring-[#0D9488]/30 focus:border-[#0D9488] focus:bg-white transition-all duration-150"
               />
               <User className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
@@ -340,10 +340,10 @@ export const TechnicalHeaderSection: React.FC<TechnicalHeaderSectionProps> = ({
               </label>
               <input
                 type="text"
-                value={headerData.director || ""}
+                value={headerData.director !== undefined ? headerData.director : "prof. "}
                 onChange={(e) => handleFieldChange("director", e.target.value)}
                 onFocus={(e) => e.target.select()}
-                placeholder="Prof. dr. Popescu Ion"
+                placeholder="prof. "
                 className="w-full px-3.5 py-2.5 bg-[#F8FAF9] border border-[#E2E8F0] rounded-xl text-xs sm:text-sm text-[#1E293B] placeholder:text-slate-400 focus:placeholder-transparent focus:outline-hidden focus:ring-2 focus:ring-[#0D9488]/30 focus:border-[#0D9488] focus:bg-white transition-all duration-150"
               />
             </div>
@@ -356,10 +356,10 @@ export const TechnicalHeaderSection: React.FC<TechnicalHeaderSectionProps> = ({
               </label>
               <input
                 type="text"
-                value={headerData.respCatedra || ""}
+                value={headerData.respCatedra !== undefined ? headerData.respCatedra : "prof. "}
                 onChange={(e) => handleFieldChange("respCatedra", e.target.value)}
                 onFocus={(e) => e.target.select()}
-                placeholder="Prof. Georgescu Elena"
+                placeholder="prof. "
                 className="w-full px-3.5 py-2.5 bg-[#F8FAF9] border border-[#E2E8F0] rounded-xl text-xs sm:text-sm text-[#1E293B] placeholder:text-slate-400 focus:placeholder-transparent focus:outline-hidden focus:ring-2 focus:ring-[#0D9488]/30 focus:border-[#0D9488] focus:bg-white transition-all duration-150"
               />
             </div>
