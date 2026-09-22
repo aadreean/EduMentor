@@ -2,6 +2,28 @@
   publish = "dist"
   functions = "netlify/functions"
 
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
+[[redirects]]
+  from = "/api/generate"
+  to = "/.netlify/functions/generate"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/chat"
+  to = "/.netlify/functions/chat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/health"
+  to = "/.netlify/functions/health"
+  status = 200
+  force = true
+
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/:splat"

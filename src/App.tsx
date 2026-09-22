@@ -141,39 +141,61 @@ export default function App() {
         data: f.data,
       });
 
-      const response = await fetch("/api/generate", {
+      const payload = {
+        prompt: userInput,
+        conversationHistory: messages.slice(-4).map((m) => ({
+          role: m.role,
+          content: m.content,
+        })),
+        clasa: activeClasa,
+        oreSaptamana: activeNorma,
+        tipDocument,
+        disciplina: activeDisciplina,
+        headerData,
+        sablonFiles: sablonFiles.map(sanitizeFile),
+        programaFiles: programaFiles.map(sanitizeFile),
+        suportFiles: suportFiles.map(sanitizeFile),
+        chatAttachedFiles: (chatAttachedFiles || []).map(sanitizeFile),
+        sablonText: combinedSablonText,
+        programaText: combinedProgramaText,
+        suportText: combinedSuportText,
+      };
+
+      let response = await fetch("/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          prompt: userInput,
-          conversationHistory: messages.slice(-4).map((m) => ({
-            role: m.role,
-            content: m.content,
-          })),
-          clasa: activeClasa,
-          oreSaptamana: activeNorma,
-          tipDocument,
-          disciplina: activeDisciplina,
-          headerData,
-          sablonFiles: sablonFiles.map(sanitizeFile),
-          programaFiles: programaFiles.map(sanitizeFile),
-          suportFiles: suportFiles.map(sanitizeFile),
-          chatAttachedFiles: (chatAttachedFiles || []).map(sanitizeFile),
-          sablonText: combinedSablonText,
-          programaText: combinedProgramaText,
-          suportText: combinedSuportText,
-        }),
+        body: JSON.stringify(payload),
       });
 
+      let contentType = response.headers.get("content-type") || "";
+
+      // Dacă /api/generate a returnat HTML (ex: index.html din cauza rescrierii SPA pe Netlify), încercăm direct ruta nativă Netlify Functions
+      if (!contentType.includes("application/json")) {
+        try {
+          const directNetlifyResp = await fetch("/.netlify/functions/generate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          const directType = directNetlifyResp.headers.get("content-type") || "";
+          if (directType.includes("application/json")) {
+            response = directNetlifyResp;
+            contentType = directType;
+          }
+        } catch (retryErr) {
+          console.warn("Reîncercare directă pe /.netlify/functions/generate:", retryErr);
+        }
+      }
+
       let data: any;
-      const contentType = response.headers.get("content-type") || "";
       if (contentType.includes("application/json")) {
         data = await response.json();
       } else {
         const textResp = await response.text();
+        const isHtml = textResp.trim().startsWith("<");
         throw new Error(
-          response.status === 404
-            ? "Ruta /api/generate nu a fost găsită pe server (404 Not Found)."
+          isHtml
+            ? "Serverul a returnat pagina web (index.html) în loc de răspunsul funcției serverless AI. Pe Netlify (sesuna.ro), funcția `generate` necesită un nou deploy sau verificare în secțiunea Functions."
             : `Răspuns invalid primit de la server (Status: ${response.status}).`
         );
       }
