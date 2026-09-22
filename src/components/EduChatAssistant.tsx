@@ -176,11 +176,33 @@ Despre ce doriți să discutăm astăzi?`,
         })),
       };
 
-      const res = await fetch("/api/chat", {
+      let res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
+
+      let contentType = res.headers.get("content-type") || "";
+      if (!contentType.includes("application/json")) {
+        try {
+          const directNetlifyResp = await fetch("/.netlify/functions/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          const directType = directNetlifyResp.headers.get("content-type") || "";
+          if (directType.includes("application/json")) {
+            res = directNetlifyResp;
+            contentType = directType;
+          }
+        } catch {
+          // ignore
+        }
+      }
+
+      if (!contentType.includes("application/json")) {
+        throw new Error("Răspuns invalid de la server.");
+      }
 
       const data = await res.json();
 
