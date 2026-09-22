@@ -296,9 +296,12 @@ GENEREAZĂ PLANIFICAREA PE UNITĂȚI DE ÎNVĂȚARE COMPLETĂ cu tabelul Markdow
     }
 
     contextDescription += `
-REGULĂ DE AUR PRIVIND CONȚINUTUL ȘI UNITĂȚILE:
-- Extrage denumirile unităților și conținuturile tematice EXCLUSIV și STRICT din documentele încărcate de profesor (corpusul manualului/suportului sau programa școlară).
-- ESTE STRICT INTERZISĂ inventarea unor unități sau conținuturi arbitrare precum „Pushing the Boundaries”, „Mind, Brain & Human Nature” sau alte titluri străine, decât dacă apar negru pe alb în fișierele atașate de profesor!
+REGULĂ DE AUR PRIVIND ANALIZA IMAGINILOR ȘI EXTRAGEREA UNITĂȚILOR:
+- Dacă profesorul a atașat imagini (fotografii, capturi de ecran ale cuprinsului manualului sau pagini din manual): ANALIZEAZĂ CU ATENȚIE IMAGINILE ATAȘATE (folosind capabilitățile tale de Viziune Multimodală / OCR).
+- Citește textul din imaginile cuprinsului pentru ORICE disciplină (Limba Română, Matematică, Limba Engleză, Franceză, Istorie, Geografie, Biologie, Fizică, Chimie, Informatică, Muzică, Arte etc.) și pentru ORICE manual/editură.
+- Identifică toate titlurile unităților/capitolelor (Unit 1, Unit 2... sau Capitolul 1, Capitolul 2...) și temele vizibile în imagini.
+- CONSTRUIEȘTE ÎNTREAGA PLANIFICARE EXCLUSIV PE BAZA ACESTOR UNITĂȚI ȘI CONȚINUTURI EXTRASE DIN IMAGINILE ATAȘATE!
+- Dacă nu sunt atașate imagini sau fișiere, folosește programa oficială a disciplinei. Este strict interzisă inventarea de titluri arbitrare.
 `;
 
     userParts.push({ text: contextDescription });
@@ -365,10 +368,11 @@ REGULĂ DE AUR PRIVIND CONȚINUTUL ȘI UNITĂȚILE:
     allProgramaFiles.forEach((file: any, index: number) => {
       const mime = getValidInlineMimeType(file);
       if (mime && file.data) {
+        const cleanData = (file.data || "").includes(",") ? file.data.split(",")[1] : file.data;
         userParts.push({
           inlineData: {
             mimeType: mime,
-            data: file.data,
+            data: cleanData,
           },
         });
       }
@@ -381,10 +385,11 @@ REGULĂ DE AUR PRIVIND CONȚINUTUL ȘI UNITĂȚILE:
     allSuportFiles.forEach((file: any, index: number) => {
       const mime = getValidInlineMimeType(file);
       if (mime && file.data) {
+        const cleanData = (file.data || "").includes(",") ? file.data.split(",")[1] : file.data;
         userParts.push({
           inlineData: {
             mimeType: mime,
-            data: file.data,
+            data: cleanData,
           },
         });
       }
@@ -398,10 +403,11 @@ REGULĂ DE AUR PRIVIND CONȚINUTUL ȘI UNITĂȚILE:
       chatAttachedFiles.forEach((file: any, index: number) => {
         const mime = getValidInlineMimeType(file);
         if (mime && file.data) {
+          const cleanData = (file.data || "").includes(",") ? file.data.split(",")[1] : file.data;
           userParts.push({
             inlineData: {
               mimeType: mime,
-              data: file.data,
+              data: cleanData,
             },
           });
         }
@@ -421,12 +427,10 @@ REGULĂ DE AUR PRIVIND CONȚINUTUL ȘI UNITĂȚILE:
     let responseText = "";
     // Modele de înaltă performanță verificate cu suport multimodal pentru imagini/PDF și cotă activă
     const candidateModels = [
-      "gemini-3.5-flash",
-      "gemini-3.6-flash",
-      "gemini-3.7-flash",
+      "gemini-3.8-flash",
       "gemini-2.5-flash",
+      "gemini-flash-latest",
       "gemini-3.1-flash-lite",
-      "gemini-flash-lite-latest"
     ];
     let lastError: any = null;
 

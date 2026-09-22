@@ -479,7 +479,7 @@ export const ConfigurationWorkshop: React.FC<ConfigurationWorkshopProps> = ({
                 if (e.target.files?.[0]) handleFileUpload(e.target.files[0], "sablon");
               }}
               className="hidden"
-              accept=".pdf,.docx,.doc,.txt,.md"
+              accept=".pdf,.docx,.doc,.txt,.md,.png,.jpg,.jpeg,.webp,image/*"
             />
             <div
               onDragOver={(e) => {
@@ -584,7 +584,7 @@ export const ConfigurationWorkshop: React.FC<ConfigurationWorkshopProps> = ({
                 if (e.target.files?.[0]) handleFileUpload(e.target.files[0], "programa");
               }}
               className="hidden"
-              accept=".pdf,.docx,.doc,.txt,.md"
+              accept=".pdf,.docx,.doc,.txt,.md,.png,.jpg,.jpeg,.webp,image/*"
             />
             <div
               onDragOver={(e) => {
@@ -608,7 +608,7 @@ export const ConfigurationWorkshop: React.FC<ConfigurationWorkshopProps> = ({
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <div className="font-semibold text-xs text-[#1E293B]">
-                    2. Programă școlară
+                    2. Programa Școlară
                   </div>
                   {hasPrograma ? (
                     <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-100 text-emerald-800">
@@ -650,13 +650,13 @@ export const ConfigurationWorkshop: React.FC<ConfigurationWorkshopProps> = ({
                 ) : programaText ? (
                   <span className="text-slate-700">Text programă atașat ({programaText.length} caractere)</span>
                 ) : (
-                  <span>Trage aici programa MEC (competențe generale & specifice)</span>
+                  <span>Trage aici programa MEC (PDF, Word, text sau captură)</span>
                 )}
               </div>
             </div>
           </div>
 
-          {/* Dropzone 3: Suport curs */}
+          {/* Dropzone 3: Suport curs / Cuprins manual */}
           <div>
             <input
               type="file"
@@ -665,7 +665,7 @@ export const ConfigurationWorkshop: React.FC<ConfigurationWorkshopProps> = ({
                 if (e.target.files?.[0]) handleFileUpload(e.target.files[0], "suport");
               }}
               className="hidden"
-              accept=".pdf,.docx,.doc,.txt,.md"
+              accept=".pdf,.docx,.doc,.txt,.md,.png,.jpg,.jpeg,.webp,image/*"
             />
             <div
               onDragOver={(e) => {
@@ -689,7 +689,7 @@ export const ConfigurationWorkshop: React.FC<ConfigurationWorkshopProps> = ({
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <div className="font-semibold text-xs text-[#1E293B]">
-                    3. Suport curs / Manual
+                    3. Suport curs / Cuprins Manual
                   </div>
                   {hasSuport ? (
                     <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-100 text-emerald-800">
@@ -731,7 +731,7 @@ export const ConfigurationWorkshop: React.FC<ConfigurationWorkshopProps> = ({
                 ) : suportText ? (
                   <span className="text-slate-700">Cuprins manual atașat ({suportText.length} caractere)</span>
                 ) : (
-                  <span>Trage aici cuprinsul manualului tematic pentru unitățile de învățare</span>
+                  <span>Trage aici imagini/capturi foto sau PDF/Word cu cuprinsul manualului</span>
                 )}
               </div>
             </div>

@@ -230,7 +230,7 @@ Despre ce doriți să discutăm astăzi?`,
         role: "assistant",
         content: "Conversația a fost resetată. Cu ce vă pot fi de folos în proiectarea didactică?",
         timestamp: new Date().toLocaleTimeString("ro-RO", { hour: "2-digit", minute: "2-digit" }),
-        modelUsed: "gemini-3.5-flash",
+        modelUsed: "gemini-3.8-flash",
       },
     ]);
   };
