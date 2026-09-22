@@ -202,10 +202,13 @@ Despre ce doriți să discutăm astăzi?`,
       setMessages((prev) => [...prev, assistantMessage]);
     } catch (err: any) {
       console.error("Chat error:", err);
+      const isFailedFetch = err?.message?.toLowerCase().includes("failed to fetch");
       const errorMessage: AssistantChatMessage = {
         id: `err-${Date.now()}`,
         role: "assistant",
-        content: `A apărut o eroare la procesarea mesajului: ${err.message || "Vă rugăm să reîncercați."}`,
+        content: isFailedFetch
+          ? `### ⚠️ Eroare de rețea (Failed to fetch)\n\nNu s-a putut contacta serverul metodist. Dacă accesați aplicația pe o găzduire exclusiv statică (precum Netlify), asistentul conversațional necesită pornirea serverului backend Node.js. Pe mediul principal sau dacă aveți conexiune la internet, vă rugăm să reîncercați.`
+          : `A apărut o eroare la procesarea mesajului: ${err.message || "Vă rugăm să reîncercați."}`,
         timestamp: new Date().toLocaleTimeString("ro-RO", { hour: "2-digit", minute: "2-digit" }),
       };
       setMessages((prev) => [...prev, errorMessage]);

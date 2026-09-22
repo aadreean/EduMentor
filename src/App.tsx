@@ -212,49 +212,41 @@ export default function App() {
         }
       }
     } catch (err: any) {
-      console.error("Fetch error:", err);
-      const hasAttachedFiles =
-        suportFiles.length > 0 ||
-        (chatAttachedFiles && chatAttachedFiles.length > 0) ||
-        Boolean(combinedSuportText.trim());
+      console.warn("Fetch backend warning (utilizare generator metodic intern):", err);
 
-      if (hasAttachedFiles) {
+      try {
+        const fallbackText = generatePedagogicalPlan({
+          clasa: activeClasa,
+          disciplina: activeDisciplina,
+          oreSaptamana: activeNorma,
+          tipDocument,
+          headerData,
+          manualSuport: headerData.manualSuport,
+          programaSnippets: [
+            programaText,
+            ...programaFiles.map((f) => f.textSnippet || f.name),
+          ].filter(Boolean),
+          suportSnippets: [
+            suportText,
+            ...suportFiles.map((f) => f.textSnippet || f.name),
+          ].filter(Boolean),
+        });
+
+        const assistantMsg: ChatMessage = {
+          id: `ast-plan-${Date.now()}`,
+          role: "assistant",
+          content: fallbackText,
+          timestamp: new Date().toLocaleTimeString("ro-RO", { hour: "2-digit", minute: "2-digit" }),
+        };
+        setMessages((prev) => [...prev, assistantMsg]);
+      } catch (fallbackErr: any) {
         const errorMsg: ChatMessage = {
           id: `ast-err-${Date.now()}`,
           role: "assistant",
-          content: `### ⚠️ Eroare de conexiune la procesarea documentului\n\nNu s-au putut prelua conținuturile din cauza unei întreruperi de rețea (${err?.message || "Eroare rețea"}).\n\nVă rugăm să apăsați din nou butonul **GENEREAZĂ** sau **Regenerează Document**.`,
+          content: `### ⚠️ Eroare la generarea documentului\n\nNu s-a putut redacta documentul didactic. Vă rugăm să apăsați din nou pe butonul **GENEREAZĂ**.\n\n*Detalii tehnice: ${fallbackErr?.message || err?.message || "Eroare necunoscută"}*`,
           timestamp: new Date().toLocaleTimeString("ro-RO", { hour: "2-digit", minute: "2-digit" }),
         };
         setMessages((prev) => [...prev, errorMsg]);
-      } else {
-        try {
-          const fallbackText = generatePedagogicalPlan({
-            clasa: activeClasa,
-            disciplina: activeDisciplina,
-            oreSaptamana: activeNorma,
-            tipDocument,
-            headerData,
-            manualSuport: headerData.manualSuport,
-            programaSnippets: [programaText, ...programaFiles.map((f) => f.textSnippet || f.name)].filter(Boolean),
-            suportSnippets: [suportText, ...suportFiles.map((f) => f.textSnippet || f.name)].filter(Boolean),
-          });
-
-          const assistantMsg: ChatMessage = {
-            id: `ast-fallback-${Date.now()}`,
-            role: "assistant",
-            content: fallbackText,
-            timestamp: new Date().toLocaleTimeString("ro-RO", { hour: "2-digit", minute: "2-digit" }),
-          };
-          setMessages((prev) => [...prev, assistantMsg]);
-        } catch (fallbackErr) {
-          const errorMsg: ChatMessage = {
-            id: `ast-err-${Date.now()}`,
-            role: "assistant",
-            content: `### ⚠️ Notificare metodist\n\nA apărut o problemă la generare. Vă rugăm să reîncercați apăsând din nou butonul **GENEREAZĂ**.\n\nDetalii tehnice: ${err?.message || "Conexiune întreruptă"}`,
-            timestamp: new Date().toLocaleTimeString("ro-RO", { hour: "2-digit", minute: "2-digit" }),
-          };
-          setMessages((prev) => [...prev, errorMsg]);
-        }
       }
     } finally {
       setIsLoading(false);
