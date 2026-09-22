@@ -165,9 +165,20 @@ export default function App() {
         }),
       });
 
-      const data = await response.json();
+      let data: any;
+      const contentType = response.headers.get("content-type") || "";
+      if (contentType.includes("application/json")) {
+        data = await response.json();
+      } else {
+        const textResp = await response.text();
+        throw new Error(
+          response.status === 404
+            ? "Ruta /api/generate nu a fost găsită pe server (404 Not Found)."
+            : `Răspuns invalid primit de la server (Status: ${response.status}).`
+        );
+      }
 
-      if (data.success && data.text && data.text.includes("|")) {
+      if (data.success && data.text) {
         const assistantMsg: ChatMessage = {
           id: `ast-${Date.now()}`,
           role: "assistant",
@@ -178,19 +189,25 @@ export default function App() {
       } else {
         const hasAttachedFiles =
           suportFiles.length > 0 ||
+          programaFiles.length > 0 ||
           (chatAttachedFiles && chatAttachedFiles.length > 0) ||
           Boolean(combinedSuportText.trim());
 
         if (hasAttachedFiles) {
+          const isNetlifyKeyMissing = data.error && data.error.includes("GEMINI_API_KEY");
           const errorMsg: ChatMessage = {
             id: `ast-err-${Date.now()}`,
             role: "assistant",
-            content: `### ⚠️ Notificare procesare cuprins\n\n${data.error || "Serviciul de recunoaștere nu a putut extrage automat conținuturile din fișierul atașat în această secundă."}\n\n**Soluție:** Vă rugăm să apăsați din nou pe **„Regenerează Document”** sau **„GENEREAZĂ”**. Toate modelele multimodale sunt pregătite pentru prelucrarea fișierului dumneavoastră.`,
+            content: `### ⚠️ Eroare la recunoașterea fișierelor încărcate\n\n${data.error || "Serviciul de recunoaștere nu a putut extrage automat conținuturile din fișierele atașate."}\n\n${
+              isNetlifyKeyMissing
+                ? "**Pentru utilizatorii de pe domeniul sesuna.ro (Netlify):**\nAsigurați-vă că ați adăugat variabila `GEMINI_API_KEY` în panoul Netlify la **Site configuration → Environment variables**, apoi efectuați un nou deploy."
+                : "**Soluție:** Vă rugăm să apăsați din nou pe **„Regenerează Document”** sau verificați conexiunea."
+            }`,
             timestamp: new Date().toLocaleTimeString("ro-RO", { hour: "2-digit", minute: "2-digit" }),
           };
           setMessages((prev) => [...prev, errorMsg]);
         } else {
-          console.warn("API did not return a structured table, employing curricular plan fallback.");
+          console.warn("API did not return text, employing curricular plan fallback.");
           const fallbackText = generatePedagogicalPlan({
             clasa: activeClasa,
             disciplina: activeDisciplina,
@@ -212,41 +229,57 @@ export default function App() {
         }
       }
     } catch (err: any) {
-      console.warn("Fetch backend warning (utilizare generator metodic intern):", err);
+      console.warn("Fetch backend warning:", err);
 
-      try {
-        const fallbackText = generatePedagogicalPlan({
-          clasa: activeClasa,
-          disciplina: activeDisciplina,
-          oreSaptamana: activeNorma,
-          tipDocument,
-          headerData,
-          manualSuport: headerData.manualSuport,
-          programaSnippets: [
-            programaText,
-            ...programaFiles.map((f) => f.textSnippet || f.name),
-          ].filter(Boolean),
-          suportSnippets: [
-            suportText,
-            ...suportFiles.map((f) => f.textSnippet || f.name),
-          ].filter(Boolean),
-        });
+      const hasAttachedFiles =
+        suportFiles.length > 0 ||
+        programaFiles.length > 0 ||
+        (chatAttachedFiles && chatAttachedFiles.length > 0) ||
+        Boolean(combinedSuportText.trim());
 
-        const assistantMsg: ChatMessage = {
-          id: `ast-plan-${Date.now()}`,
-          role: "assistant",
-          content: fallbackText,
-          timestamp: new Date().toLocaleTimeString("ro-RO", { hour: "2-digit", minute: "2-digit" }),
-        };
-        setMessages((prev) => [...prev, assistantMsg]);
-      } catch (fallbackErr: any) {
+      if (hasAttachedFiles) {
         const errorMsg: ChatMessage = {
           id: `ast-err-${Date.now()}`,
           role: "assistant",
-          content: `### ⚠️ Eroare la generarea documentului\n\nNu s-a putut redacta documentul didactic. Vă rugăm să apăsați din nou pe butonul **GENEREAZĂ**.\n\n*Detalii tehnice: ${fallbackErr?.message || err?.message || "Eroare necunoscută"}*`,
+          content: `### ⚠️ Nu s-a putut apela motorul AI pentru citirea cuprinsului\n\n**Detalii eroare:** ${err.message || "Eroare de conexiune la server"}\n\n**De ce este necesară conexiunea AI:**\nAți atașat fotografii / capturi de ecran ale manualului. Pentru ca titlurile reale din manual să fie transcrise optic și să NU se genereze denumiri generice, este obligatoriu ca motorul de Viziune Multimodală să citească imaginea.\n\n**Dacă accesați aplicația pe sesuna.ro (Netlify):**\n1. Au fost configurate funcțiile serverless native în directorul \`netlify/functions/\`.\n2. Vă rugăm să verificați că în panoul Netlify (**Site configuration → Environment variables**) aveți setată variabila **\`GEMINI_API_KEY\`**.\n3. Reîncărcați pagina și apăsați pe **GENEREAZĂ PLANIFICAREA ANUALĂ**.\n\n*Aplicația refuză să afișeze capitole fictive sau șabloane generice atunci când aveți atașate fișiere.*`,
           timestamp: new Date().toLocaleTimeString("ro-RO", { hour: "2-digit", minute: "2-digit" }),
         };
         setMessages((prev) => [...prev, errorMsg]);
+      } else {
+        try {
+          const fallbackText = generatePedagogicalPlan({
+            clasa: activeClasa,
+            disciplina: activeDisciplina,
+            oreSaptamana: activeNorma,
+            tipDocument,
+            headerData,
+            manualSuport: headerData.manualSuport,
+            programaSnippets: [
+              programaText,
+              ...programaFiles.map((f) => f.textSnippet || f.name),
+            ].filter(Boolean),
+            suportSnippets: [
+              suportText,
+              ...suportFiles.map((f) => f.textSnippet || f.name),
+            ].filter(Boolean),
+          });
+
+          const assistantMsg: ChatMessage = {
+            id: `ast-plan-${Date.now()}`,
+            role: "assistant",
+            content: fallbackText,
+            timestamp: new Date().toLocaleTimeString("ro-RO", { hour: "2-digit", minute: "2-digit" }),
+          };
+          setMessages((prev) => [...prev, assistantMsg]);
+        } catch (fallbackErr: any) {
+          const errorMsg: ChatMessage = {
+            id: `ast-err-${Date.now()}`,
+            role: "assistant",
+            content: `### ⚠️ Eroare la generarea documentului\n\nNu s-a putut redacta documentul didactic. Vă rugăm să apăsați din nou pe butonul **GENEREAZĂ**.\n\n*Detalii tehnice: ${fallbackErr?.message || err?.message || "Eroare necunoscută"}*`,
+            timestamp: new Date().toLocaleTimeString("ro-RO", { hour: "2-digit", minute: "2-digit" }),
+          };
+          setMessages((prev) => [...prev, errorMsg]);
+        }
       }
     } finally {
       setIsLoading(false);

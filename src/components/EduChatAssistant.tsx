@@ -172,7 +172,7 @@ Despre ce doriți să discutăm astăzi?`,
           size: f.size,
           type: f.type,
           textSnippet: f.textSnippet,
-          data: f.size && f.size < 3.5 * 1024 * 1024 ? f.data : undefined,
+          data: f.data,
         })),
       };
 

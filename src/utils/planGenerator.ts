@@ -20,7 +20,8 @@ export interface PlanGenerationParams {
 function extractOrGenerateUnits(
   snippets: string[],
   disciplina: string,
-  isEnglish: boolean
+  isEnglish: boolean,
+  manualSuport?: string
 ): Array<{ title: string; contents: string; cs: string }> {
   const allText = snippets.join("\n");
   const extracted: Array<{ title: string; contents: string; cs: string }> = [];
@@ -51,17 +52,17 @@ function extractOrGenerateUnits(
     return extracted;
   }
 
-  // Altfel, generăm unități didactice strict metodice și neutre raportate exclusiv la programa națională a disciplinei
-  const discTitle = disciplina || "Disciplina";
+  // Dacă nu s-au putut extrage unități din text (de exemplu dacă s-au încărcat doar imagini ce necesită OCR prin AI)
+  const manualLabel = manualSuport ? `manualul ${manualSuport}` : (disciplina || "disciplina selectată");
   const unitPrefix = isEnglish ? "Unit" : "Unitatea";
 
   return [
-    { title: `${unitPrefix} 1: Concepte introductive și competențe fundamentale (${discTitle})`, contents: "Noțiuni fundamentale, terminologie de specialitate, reactualizare și analiză ghidată", cs: "1.1, 2.1" },
-    { title: `${unitPrefix} 2: Structuri tematice și aprofundare (${discTitle})`, contents: "Aprofundare teoretică, relații funcționale, exerciții aplicative și consolidare", cs: "1.2, 2.2, 3.1" },
-    { title: `${unitPrefix} 3: Aplicații practice, comunicare și transfer`, contents: "Sarcini de lucru diferențiate, analiză critică, activitate pe grupe și studii de caz", cs: "2.1, 3.1, 3.2" },
-    { title: `${unitPrefix} 4: Modele avansate, sinteză și creație`, contents: "Proiecte individuale/de echipă, corelații interdisciplinare, argumentare și dezbatere", cs: "2.2, 3.2, 4.1" },
-    { title: `${unitPrefix} 5: Integrare tematică și perspective extinse`, contents: "Transfer de cunoștințe în contexte reale, prezentarea rezultatelor, reflecție critică", cs: "3.1, 4.1, 4.2" },
-    { title: `${unitPrefix} 6: Evaluare integratoare și portofoliu educațional`, contents: "Sistematizarea competențelor dobândite, autoevaluare și bilanț tematic", cs: "1.2, 3.2, 4.2" },
+    { title: `${unitPrefix} 1: [Necesită citire optică OCR din imaginile atașate]`, contents: `Conținuturile tematice ale primului capitol din ${manualLabel} vor fi extrase automat prin analiză multimodală AI.`, cs: "1.1, 2.1" },
+    { title: `${unitPrefix} 2: [Necesită citire optică OCR din imaginile atașate]`, contents: `Conținuturile tematice ale capitolului 2 din ${manualLabel}.`, cs: "1.2, 2.2" },
+    { title: `${unitPrefix} 3: [Necesită citire optică OCR din imaginile atașate]`, contents: `Conținuturile tematice ale capitolului 3 din ${manualLabel}.`, cs: "2.1, 3.1" },
+    { title: `${unitPrefix} 4: [Necesită citire optică OCR din imaginile atașate]`, contents: `Conținuturile tematice ale capitolului 4 din ${manualLabel}.`, cs: "2.2, 3.2" },
+    { title: `${unitPrefix} 5: [Necesită citire optică OCR din imaginile atașate]`, contents: `Conținuturile tematice ale capitolului 5 din ${manualLabel}.`, cs: "3.1, 4.1" },
+    { title: `${unitPrefix} 6: [Necesită citire optică OCR din imaginile atașate]`, contents: `Conținuturile tematice ale capitolului 6 din ${manualLabel}.`, cs: "3.2, 4.2" },
   ];
 }
 
@@ -100,7 +101,7 @@ export function generatePedagogicalPlan(params: PlanGenerationParams): string {
 
   // Extragerea unităților didactice (din fișierele atașate sau neutre)
   const allSnippets = [...suportSnippets, ...programaSnippets];
-  const unitList = extractOrGenerateUnits(allSnippets, disciplina, isEnglish);
+  const unitList = extractOrGenerateUnits(allSnippets, disciplina, isEnglish, manual);
 
   const getUnit = (index: number) => {
     return unitList[index % unitList.length];
