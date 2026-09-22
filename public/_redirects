@@ -1,4 +1,5 @@
 # Netlify redirect rules: route API requests directly to Netlify serverless functions
+/api/token              /.netlify/functions/token              200
 /api/generate           /.netlify/functions/generate           200
 /api/chat               /.netlify/functions/chat               200
 /api/health             /.netlify/functions/health             200

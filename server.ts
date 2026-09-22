@@ -4,6 +4,14 @@ import dotenv from "dotenv";
 import { GoogleGenAI, ThinkingLevel } from "@google/genai";
 import { createServer as createViteServer } from "vite";
 import { generatePedagogicalPlan } from "./src/utils/planGenerator";
+import {
+  generateAccessToken,
+  verifyAccessToken,
+  checkRateLimit,
+  getClientIp,
+  getCorsHeaders,
+  extractBearerToken,
+} from "./netlify/functions/_security.js";
 
 dotenv.config();
 
@@ -13,15 +21,28 @@ const PORT = 3000;
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 
-// Enable CORS for custom domains and external hosts (e.g. sesuna.ro, Netlify)
+// Dynamic CORS using _security.ts whitelist
 app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, DELETE");
-  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
+  const origin = (req.headers.origin as string) || "";
+  const cors = getCorsHeaders(origin);
+  Object.entries(cors).forEach(([key, value]) => {
+    res.setHeader(key, value);
+  });
   if (req.method === "OPTIONS") {
-    return res.sendStatus(200);
+    return res.sendStatus(204);
   }
   next();
+});
+
+// Endpoint pentru obținerea tokenului de securitate HMAC (12h)
+app.all("/api/token", (req, res) => {
+  const { token, expiresIn } = generateAccessToken();
+  res.json({
+    success: true,
+    token,
+    expiresIn,
+    type: "Bearer",
+  });
 });
 
 // System instruction for Romanian Educational Metodist (v.8.0 - Expert Curricular & Metodist Polivalent - autor prof. Adrian Podar)
@@ -137,6 +158,31 @@ app.get("/api/health", (_req, res) => {
 // API endpoint to generate educational plans or chat with metodist
 app.post("/api/generate", async (req, res) => {
   try {
+    // 1. Verificare token HMAC (12h)
+    const token = extractBearerToken(req, req.body);
+    const tokenVerification = verifyAccessToken(token);
+    if (!tokenVerification.valid) {
+      return res.status(401).json({
+        success: false,
+        error: tokenVerification.error || "Token de acces invalid sau expirat. Reîncărcați pagina.",
+        code: "UNAUTHORIZED",
+      });
+    }
+
+    // 2. Verificare Rate Limiting per IP (Netlify Blobs / Memory fallback)
+    const clientIp = getClientIp(req);
+    const rateLimit = await checkRateLimit(clientIp, "generate");
+    if (!rateLimit.allowed) {
+      res.setHeader("Retry-After", String(rateLimit.retryAfterSeconds));
+      const waitMin = Math.ceil(rateLimit.retryAfterSeconds / 60);
+      return res.status(429).json({
+        success: false,
+        error: `Ai atins limita de generări pe oră (${rateLimit.limit} cereri / oră). Te rugăm să încerci din nou peste ${waitMin} minute.`,
+        retryAfter: rateLimit.retryAfterSeconds,
+        code: "RATE_LIMITED",
+      });
+    }
+
     const {
       prompt = "",
       conversationHistory = [],
@@ -594,6 +640,31 @@ Un obiectiv didactic bine formulat (modelul Mager) conține 3 componente esenți
 // - Fast tasks: gemini-3.1-flash-lite
 app.post("/api/chat", async (req, res) => {
   try {
+    // 1. Verificare token HMAC (12h)
+    const token = extractBearerToken(req, req.body);
+    const tokenVerification = verifyAccessToken(token);
+    if (!tokenVerification.valid) {
+      return res.status(401).json({
+        success: false,
+        error: tokenVerification.error || "Token de acces invalid sau expirat. Reîncărcați pagina.",
+        code: "UNAUTHORIZED",
+      });
+    }
+
+    // 2. Verificare Rate Limiting per IP (Netlify Blobs / Memory fallback) - max 20 / oră
+    const clientIp = getClientIp(req);
+    const rateLimit = await checkRateLimit(clientIp, "chat");
+    if (!rateLimit.allowed) {
+      res.setHeader("Retry-After", String(rateLimit.retryAfterSeconds));
+      const waitMin = Math.ceil(rateLimit.retryAfterSeconds / 60);
+      return res.status(429).json({
+        success: false,
+        error: `Ai atins limita de mesaje pe oră (${rateLimit.limit} mesaje / oră). Te rugăm să încerci din nou peste ${waitMin} minute.`,
+        retryAfter: rateLimit.retryAfterSeconds,
+        code: "RATE_LIMITED",
+      });
+    }
+
     const {
       messages = [],
       taskType = "general", // 'fast' | 'general' | 'complex'

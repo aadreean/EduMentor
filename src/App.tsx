@@ -16,6 +16,7 @@ import { EduChatAssistant } from "./components/EduChatAssistant";
 import { ChatMessage, DocumentType, FilePayload, TechnicalHeaderData } from "./types";
 import { STANDARD_TEMPLATES } from "./data/curriculumData";
 import { generatePedagogicalPlan } from "./utils/planGenerator";
+import { fetchWithAuth } from "./lib/apiClient";
 
 export default function App() {
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
@@ -161,7 +162,7 @@ export default function App() {
         suportText: combinedSuportText,
       };
 
-      let response = await fetch("/api/generate", {
+      let response = await fetchWithAuth("/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -172,7 +173,7 @@ export default function App() {
       // Dacă /api/generate a returnat HTML (ex: index.html din cauza rescrierii SPA pe Netlify), încercăm direct ruta nativă Netlify Functions
       if (!contentType.includes("application/json")) {
         try {
-          const directNetlifyResp = await fetch("/.netlify/functions/generate", {
+          const directNetlifyResp = await fetchWithAuth("/.netlify/functions/generate", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload),
@@ -197,6 +198,18 @@ export default function App() {
           isHtml
             ? "Serverul a returnat pagina web (index.html) în loc de răspunsul funcției serverless AI. Pe Netlify (sesuna.ro), funcția `generate` necesită un nou deploy sau verificare în secțiunea Functions."
             : `Răspuns invalid primit de la server (Status: ${response.status}).`
+        );
+      }
+
+      if (response.status === 429) {
+        throw new Error(
+          data.error || "Ai atins limita de generări pe oră (maximum 10 cereri/oră). Te rugăm să încerci din nou mai târziu."
+        );
+      }
+
+      if (response.status === 401) {
+        throw new Error(
+          data.error || "Sesiunea de securitate a expirat sau tokenul este invalid. Reîncărcați pagina."
         );
       }
 

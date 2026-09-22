@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { AssistantChatMessage, GroundingSource, FilePayload } from "../types";
 import { readFileAsBase64, extractTextSnippet } from "../utils/fileHelpers";
+import { fetchWithAuth } from "../lib/apiClient";
 
 interface EduChatAssistantProps {
   isOpen: boolean;
@@ -176,7 +177,7 @@ Despre ce doriți să discutăm astăzi?`,
         })),
       };
 
-      let res = await fetch("/api/chat", {
+      let res = await fetchWithAuth("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -185,7 +186,7 @@ Despre ce doriți să discutăm astăzi?`,
       let contentType = res.headers.get("content-type") || "";
       if (!contentType.includes("application/json")) {
         try {
-          const directNetlifyResp = await fetch("/.netlify/functions/chat", {
+          const directNetlifyResp = await fetchWithAuth("/.netlify/functions/chat", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload),
@@ -205,6 +206,18 @@ Despre ce doriți să discutăm astăzi?`,
       }
 
       const data = await res.json();
+
+      if (res.status === 429) {
+        throw new Error(
+          data.error || "Ai atins limita de mesaje pe oră (maximum 20 mesaje/oră). Te rugăm să încerci din nou mai târziu."
+        );
+      }
+
+      if (res.status === 401) {
+        throw new Error(
+          data.error || "Sesiunea de securitate a expirat. Reîncărcați pagina."
+        );
+      }
 
       if (!res.ok || !data.success) {
         throw new Error(data.error || "Eroare la obținerea răspunsului.");

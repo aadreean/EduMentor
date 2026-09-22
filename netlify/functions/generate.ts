@@ -1,4 +1,12 @@
 import { GoogleGenAI } from "@google/genai";
+import {
+  getCorsHeaders,
+  getClientIp,
+  checkRateLimit,
+  verifyAccessToken,
+  extractBearerToken,
+  validatePayloadSize,
+} from "./_security.js";
 
 let aiInstance: GoogleGenAI | null = null;
 function getAi(): GoogleGenAI {
@@ -200,32 +208,128 @@ CÂND PROFESORUL ÎNCARCĂ IMAGINI CU CUPRINSUL MANUALULUI: extrage toate unită
 // Netlify Functions v2 default export
 export default async function (req: Request | any, context?: any) {
   if (req instanceof Request || (req && typeof req.headers?.get === "function")) {
+    const origin = req.headers.get("origin");
+    const corsHeaders = getCorsHeaders(origin);
+
     if (req.method === "OPTIONS") {
       return new Response(null, {
         status: 204,
-        headers: {
-          "Access-Control-Allow-Origin": "*",
-          "Access-Control-Allow-Headers": "Content-Type",
-          "Access-Control-Allow-Methods": "POST, OPTIONS",
-        },
+        headers: corsHeaders,
       });
     }
 
     if (req.method !== "POST") {
-      return new Response(JSON.stringify({ success: false, error: "Method not allowed" }), {
-        status: 405,
-        headers: { "Content-Type": "application/json" },
-      });
+      return new Response(
+        JSON.stringify({ success: false, error: "Metodă HTTP nepermisă. Folosiți POST." }),
+        { status: 405, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const contentType = req.headers.get("content-type") || "";
+    if (!contentType.includes("application/json")) {
+      return new Response(
+        JSON.stringify({ success: false, error: "Content-Type invalid. Este permis doar application/json." }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // 1. Validare dimensiune payload (max 12 MB pentru a permite poze cu cuprinsul manualului)
+    let rawBody = "";
+    try {
+      rawBody = await req.text();
+    } catch {
+      return new Response(
+        JSON.stringify({ success: false, error: "Corpul cererii nu a putut fi citit." }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const sizeCheck = validatePayloadSize(rawBody, 12 * 1024 * 1024);
+    if (!sizeCheck.valid) {
+      return new Response(
+        JSON.stringify({ success: false, error: sizeCheck.error }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    let payload: any;
+    try {
+      payload = JSON.parse(rawBody || "{}");
+    } catch {
+      return new Response(
+        JSON.stringify({ success: false, error: "Format JSON invalid în corpul cererii." }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // 2. Verificare Token HMAC (valabilitate 12 ore)
+    const token = extractBearerToken(req, payload);
+    const tokenVerification = verifyAccessToken(token);
+    if (!tokenVerification.valid) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: tokenVerification.error || "Token de acces lipsă sau invalid. Vă rugăm să reîncărcați pagina.",
+          code: "UNAUTHORIZED",
+        }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // 3. Verificare Rate Limiting per IP (Netlify Blobs)
+    const clientIp = getClientIp(req);
+    const rateLimit = await checkRateLimit(clientIp, "generate");
+    if (!rateLimit.allowed) {
+      const waitMin = Math.ceil(rateLimit.retryAfterSeconds / 60);
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: `Ai atins limita de generări pe oră (${rateLimit.limit} cereri / oră). Te rugăm să încerci din nou peste ${waitMin} minute.`,
+          retryAfter: rateLimit.retryAfterSeconds,
+          code: "RATE_LIMITED",
+        }),
+        {
+          status: 429,
+          headers: {
+            ...corsHeaders,
+            "Content-Type": "application/json",
+            "Retry-After": String(rateLimit.retryAfterSeconds),
+          },
+        }
+      );
+    }
+
+    // 4. Validare structurală câmpuri
+    if (!payload || typeof payload !== "object") {
+      return new Response(
+        JSON.stringify({ success: false, error: "Datele transmise sunt invalide." }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const hasContent =
+      Boolean(payload.prompt && String(payload.prompt).trim()) ||
+      Boolean(payload.disciplina && String(payload.disciplina).trim()) ||
+      Boolean(payload.suportFiles && payload.suportFiles.length > 0) ||
+      Boolean(payload.programaFiles && payload.programaFiles.length > 0) ||
+      Boolean(payload.sablonFiles && payload.sablonFiles.length > 0);
+
+    if (!hasContent) {
+      return new Response(
+        JSON.stringify({ success: false, error: "Câmpuri obligatorii lipsă. Selectați disciplina/clasa sau introduceți instrucțiuni." }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     try {
-      const payload = await req.json();
       const result = await processGenerate(payload);
       return new Response(JSON.stringify(result), {
         status: 200,
         headers: {
+          ...corsHeaders,
           "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": "*",
+          "X-RateLimit-Limit": String(rateLimit.limit),
+          "X-RateLimit-Remaining": String(rateLimit.remaining),
         },
       });
     } catch (error: any) {
@@ -233,10 +337,10 @@ export default async function (req: Request | any, context?: any) {
       return new Response(
         JSON.stringify({ success: false, error: error.message || "Eroare la procesare" }),
         {
-          status: 200,
+          status: 500,
           headers: {
+            ...corsHeaders,
             "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*",
           },
         }
       );
@@ -249,38 +353,90 @@ export default async function (req: Request | any, context?: any) {
 
 // Netlify Functions v1 handler
 export const handler = async (event: any, context?: any) => {
-  const headers = {
-    "Content-Type": "application/json",
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Headers": "Content-Type",
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-  };
+  const origin = event.headers?.origin || event.headers?.Origin;
+  const corsHeaders = getCorsHeaders(origin);
 
   if (event.httpMethod === "OPTIONS") {
-    return { statusCode: 204, headers, body: "" };
+    return { statusCode: 204, headers: corsHeaders, body: "" };
   }
 
   if (event.httpMethod !== "POST") {
     return {
       statusCode: 405,
-      headers,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
       body: JSON.stringify({ success: false, error: "Method not allowed" }),
     };
   }
 
+  const rawBody = event.body || "";
+  const sizeCheck = validatePayloadSize(rawBody, 12 * 1024 * 1024);
+  if (!sizeCheck.valid) {
+    return {
+      statusCode: 400,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      body: JSON.stringify({ success: false, error: sizeCheck.error }),
+    };
+  }
+
+  let payload: any;
   try {
-    const payload = JSON.parse(event.body || "{}");
+    payload = JSON.parse(rawBody || "{}");
+  } catch {
+    return {
+      statusCode: 400,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      body: JSON.stringify({ success: false, error: "JSON invalid" }),
+    };
+  }
+
+  const token = extractBearerToken(event, payload);
+  const tokenVerification = verifyAccessToken(token);
+  if (!tokenVerification.valid) {
+    return {
+      statusCode: 401,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      body: JSON.stringify({ success: false, error: tokenVerification.error, code: "UNAUTHORIZED" }),
+    };
+  }
+
+  const clientIp = getClientIp(event);
+  const rateLimit = await checkRateLimit(clientIp, "generate");
+  if (!rateLimit.allowed) {
+    const waitMin = Math.ceil(rateLimit.retryAfterSeconds / 60);
+    return {
+      statusCode: 429,
+      headers: {
+        ...corsHeaders,
+        "Content-Type": "application/json",
+        "Retry-After": String(rateLimit.retryAfterSeconds),
+      },
+      body: JSON.stringify({
+        success: false,
+        error: `Ai atins limita de generări pe oră (${rateLimit.limit} cereri / oră). Te rugăm să încerci din nou peste ${waitMin} minute.`,
+        retryAfter: rateLimit.retryAfterSeconds,
+        code: "RATE_LIMITED",
+      }),
+    };
+  }
+
+  try {
     const result = await processGenerate(payload);
     return {
       statusCode: 200,
-      headers,
+      headers: {
+        ...corsHeaders,
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify(result),
     };
   } catch (error: any) {
     console.error("Netlify function generate v1 error:", error);
     return {
-      statusCode: 200,
-      headers,
+      statusCode: 500,
+      headers: {
+        ...corsHeaders,
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({
         success: false,
         error: error.message || "Eroare la generarea planificării în Netlify Functions.",
