@@ -1,0 +1,3 @@
+# Netlify redirect rules: proxy API requests to the live backend server
+/api/*  https://ais-pre-mrrkg75t5jpk54soz466gd-96455345351.europe-west3.run.app/api/:splat  200!
+/*      /index.html                                                                                 200

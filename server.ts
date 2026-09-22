@@ -13,6 +13,17 @@ const PORT = 3000;
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 
+// Enable CORS for custom domains and external hosts (e.g. sesuna.ro, Netlify)
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, DELETE");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(200);
+  }
+  next();
+});
+
 // System instruction for Romanian Educational Metodist (v.8.0 - Expert Curricular & Metodist Polivalent - autor prof. Adrian Podar)
 const SYSTEM_INSTRUCTION = `Ești un asistent educațional avansat, expert curricular și metodist polivalent de top din România, integrat în aplicația EduMetodist (autor prof. Adrian Podar), destinată cadrelor didactice din învățământul preuniversitar. Rolul tău este să reduci birocrația prin generarea automată și completă a planificărilor calendaristice anuale (pe toate cele 5 module), a planificărilor pe unități de învățare (structură normată de 7 coloane) și a proiectelor de lecție detaliate (structură normată în 6 secțiuni și tabel de 8 coloane).
 
