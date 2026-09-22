@@ -132,13 +132,13 @@ export default function App() {
         .filter(Boolean)
         .join("\n\n");
 
-      // Sanitizează payload-urile fișierelor pentru a preveni căderea request-ului din cauza dimensiunii excesive
+      // Sanitizează payload-urile fișierelor fără a pierde conținutul binar al imaginilor
       const sanitizeFile = (f: FilePayload) => ({
         name: f.name,
         size: f.size,
         type: f.type,
         textSnippet: f.textSnippet,
-        data: f.size && f.size < 3.5 * 1024 * 1024 ? f.data : undefined,
+        data: f.data,
       });
 
       const response = await fetch("/api/generate", {

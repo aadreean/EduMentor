@@ -135,6 +135,15 @@ export function copyTableToClipboard(markdown: string, renderedHtml?: string) {
 }
 
 export async function readFileAsBase64(file: File): Promise<string> {
+  const isImage = file.type.startsWith("image/") || /\.(jpg|jpeg|png|webp|gif|bmp)$/i.test(file.name);
+  if (isImage && typeof window !== "undefined" && typeof document !== "undefined") {
+    try {
+      return await compressAndReadImageBase64(file);
+    } catch (e) {
+      console.warn("Optimizare canvas imagine nereușită, citire directă FileReader:", e);
+    }
+  }
+
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => {
@@ -144,6 +153,62 @@ export async function readFileAsBase64(file: File): Promise<string> {
     };
     reader.onerror = (err) => reject(err);
     reader.readAsDataURL(file);
+  });
+}
+
+/**
+ * Optimizează imaginile pentru Viziune / OCR: redimensionează la max 2048px (rezoluție optimă Gemini)
+ * și comprimă la JPEG de înaltă fidelitate, reducând fișierele de 10-15MB la ~400-800KB fără pierdere de claritate text.
+ */
+async function compressAndReadImageBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const maxDim = 2048;
+      let width = img.width;
+      let height = img.height;
+
+      if (width > maxDim || height > maxDim) {
+        if (width > height) {
+          height = Math.round((height * maxDim) / width);
+          width = maxDim;
+        } else {
+          width = Math.round((width * maxDim) / height);
+          height = maxDim;
+        }
+      }
+
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const res = reader.result as string;
+          resolve(res.includes(",") ? res.split(",")[1] : res);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+        return;
+      }
+      ctx.drawImage(img, 0, 0, width, height);
+      const dataUrl = canvas.toDataURL("image/jpeg", 0.90);
+      resolve(dataUrl.split(",")[1]);
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      const reader = new FileReader();
+      reader.onload = () => {
+        const res = reader.result as string;
+        resolve(res.includes(",") ? res.split(",")[1] : res);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    };
+    img.src = url;
   });
 }
 
