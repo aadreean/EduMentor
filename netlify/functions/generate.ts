@@ -164,48 +164,33 @@ GENEREAZĂ PROIECTUL DE LECȚIE COMPLET cu tabelul de scenariu didactic având E
   contents.push({ role: "user", parts: userParts });
 
   const candidateModels = [
-    "gemini-3.8-flash",
     "gemini-3.1-flash-lite",
+    "gemini-3.8-flash",
     "gemini-flash-latest",
   ];
 
   let lastError: any = null;
   for (const modelName of candidateModels) {
-    for (let attempt = 1; attempt <= 2; attempt++) {
-      try {
-        const response = await ai.models.generateContent({
-          model: modelName,
-          contents,
-          config: {
-            systemInstruction: `Ești EduMetodist România, asistentul metodist de elită pentru cadrele didactice din România în anul școlar 2026-2027.
+    try {
+      const response = await ai.models.generateContent({
+        model: modelName,
+        contents,
+        config: {
+          systemInstruction: `Ești EduMetodist România, asistentul metodist de elită pentru cadrele didactice din România în anul școlar 2026-2027.
 Respectă cu strictețe normele Ministerului Educației (MEC): structura pe 5 module, 36 săptămâni de cursuri (34 săptămâni pentru clasa a XII-a/a XIII-a, 35 săptămâni pentru clasa a VIII-a), programul „Mai mult decât Școala altfel” și „Săptămâna verde”.
 CÂND PROFESORUL ÎNCARCĂ IMAGINI CU CUPRINSUL MANUALULUI: extrage toate unitățile și conținuturile din imagini și structurează planificarea exclusiv pe baza acestora! Nu folosi niciodată titluri generice inventate!`,
-            temperature: 0.2,
-          },
-        });
+          temperature: 0.2,
+        },
+      });
 
-        if (response && response.text && response.text.trim().length > 0) {
-          return { success: true, text: response.text, modelUsed: modelName };
-        }
-      } catch (err: any) {
-        lastError = err;
-        const errStr = String(err?.message || err);
-        const isBusy =
-          errStr.includes("503") ||
-          errStr.includes("UNAVAILABLE") ||
-          errStr.includes("high demand") ||
-          errStr.includes("429") ||
-          errStr.includes("RESOURCE_EXHAUSTED");
-
-        console.warn(`Model ${modelName} încercarea ${attempt} eșuată:`, errStr);
-        if (isBusy && attempt === 1) {
-          // Așteptăm 1 secundă înainte de reîncercare
-          await new Promise((resolve) => setTimeout(resolve, 1000));
-        } else {
-          // Trecem la următorul model din listă
-          break;
-        }
+      if (response && response.text && response.text.trim().length > 0) {
+        return { success: true, text: response.text, modelUsed: modelName };
       }
+    } catch (err: any) {
+      lastError = err;
+      const errStr = String(err?.message || err);
+      console.warn(`Model ${modelName} indisponibil:`, errStr);
+      // Trecem imediat la următorul model candidat
     }
   }
 

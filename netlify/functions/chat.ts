@@ -61,47 +61,34 @@ async function processChat(payload: any) {
   contents.push({ role: "user", parts: userParts });
 
   const candidateModels = [
-    "gemini-3.8-flash",
     "gemini-3.1-flash-lite",
+    "gemini-3.8-flash",
     "gemini-flash-latest",
   ];
 
   let lastError: any = null;
   for (const modelName of candidateModels) {
-    for (let attempt = 1; attempt <= 2; attempt++) {
-      try {
-        const response = await ai.models.generateContent({
+    try {
+      const response = await ai.models.generateContent({
+        model: modelName,
+        contents,
+        config: {
+          systemInstruction: `Ești Asistentul Metodist EduMetodist România pentru cadre didactice. Oferi răspunsuri clare, metodice și concrete conform normelor MEC 2026-2027.`,
+          temperature: 0.3,
+        },
+      });
+
+      if (response && response.text) {
+        return {
+          success: true,
+          text: response.text,
           model: modelName,
-          contents,
-          config: {
-            systemInstruction: `Ești Asistentul Metodist EduMetodist România pentru cadre didactice. Oferi răspunsuri clare, metodice și concrete conform normelor MEC 2026-2027.`,
-            temperature: 0.3,
-          },
-        });
-
-        if (response && response.text) {
-          return {
-            success: true,
-            text: response.text,
-            model: modelName,
-          };
-        }
-      } catch (err: any) {
-        lastError = err;
-        const errStr = String(err?.message || err);
-        const isBusy =
-          errStr.includes("503") ||
-          errStr.includes("UNAVAILABLE") ||
-          errStr.includes("high demand") ||
-          errStr.includes("429") ||
-          errStr.includes("RESOURCE_EXHAUSTED");
-
-        if (isBusy && attempt === 1) {
-          await new Promise((resolve) => setTimeout(resolve, 1000));
-        } else {
-          break;
-        }
+        };
       }
+    } catch (err: any) {
+      lastError = err;
+      const errStr = String(err?.message || err);
+      console.warn(`Model chat ${modelName} indisponibil:`, errStr);
     }
   }
 

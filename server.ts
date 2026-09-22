@@ -427,8 +427,8 @@ REGULĂ DE AUR PRIVIND ANALIZA IMAGINILOR ȘI EXTRAGEREA UNITĂȚILOR:
     let responseText = "";
     // Modele de înaltă performanță conforme @google/genai SDK cu suport multimodal (imagini/PDF)
     const candidateModels = [
-      "gemini-3.8-flash",
       "gemini-3.1-flash-lite",
+      "gemini-3.8-flash",
       "gemini-flash-latest",
     ];
     let lastError: any = null;
@@ -674,7 +674,7 @@ Păstrează un ton prietenos, colegial și bine structurat (folosind liste, tabe
       }
     }
 
-    const candidateModelsToTry = ["gemini-2.5-flash", primaryModel];
+    const candidateModelsToTry = ["gemini-3.1-flash-lite", "gemini-2.5-flash", primaryModel];
     if (fallbackModel !== primaryModel && !candidateModelsToTry.includes(fallbackModel)) {
       candidateModelsToTry.push(fallbackModel);
     }
