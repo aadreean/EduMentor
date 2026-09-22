@@ -216,15 +216,41 @@ export default function App() {
           Boolean(combinedSuportText.trim());
 
         if (hasAttachedFiles) {
+          let readableError =
+            data.error ||
+            "Serviciul de recunoaștere nu a putut extrage automat conținuturile din fișierele atașate.";
+          try {
+            if (typeof readableError === "string" && readableError.trim().startsWith("{")) {
+              const parsed = JSON.parse(readableError);
+              if (parsed?.error?.message) {
+                readableError = parsed.error.message;
+              }
+            }
+          } catch {
+            // păstrăm textul inițial
+          }
+
+          const isHighDemand =
+            readableError.includes("503") ||
+            readableError.includes("UNAVAILABLE") ||
+            readableError.includes("high demand") ||
+            readableError.includes("temporarily unavailable");
+
           const isNetlifyKeyMissing = data.error && data.error.includes("GEMINI_API_KEY");
+
+          let solutionText = "**Soluție:** Vă rugăm să apăsați din nou pe **„Regenerează Document”** sau verificați conexiunea.";
+          if (isNetlifyKeyMissing) {
+            solutionText =
+              "**Pentru utilizatorii de pe domeniul sesuna.ro (Netlify):**\nAsigurați-vă că ați adăugat variabila `GEMINI_API_KEY` în panoul Netlify la **Site configuration → Environment variables**, apoi efectuați un nou deploy.";
+          } else if (isHighDemand) {
+            solutionText =
+              "**Soluție:** Serverele Google Gemini au atins temporar capacitatea maximă (503 High Demand). Sistemul a fost actualizat cu redirecționare automată pe canale de rezervă rapide (*gemini-3.1-flash-lite*). Vă rugăm să apăsați din nou pe butonul **„GENEREAZĂ”**.";
+          }
+
           const errorMsg: ChatMessage = {
             id: `ast-err-${Date.now()}`,
             role: "assistant",
-            content: `### ⚠️ Eroare la recunoașterea fișierelor încărcate\n\n${data.error || "Serviciul de recunoaștere nu a putut extrage automat conținuturile din fișierele atașate."}\n\n${
-              isNetlifyKeyMissing
-                ? "**Pentru utilizatorii de pe domeniul sesuna.ro (Netlify):**\nAsigurați-vă că ați adăugat variabila `GEMINI_API_KEY` în panoul Netlify la **Site configuration → Environment variables**, apoi efectuați un nou deploy."
-                : "**Soluție:** Vă rugăm să apăsați din nou pe **„Regenerează Document”** sau verificați conexiunea."
-            }`,
+            content: `### ⚠️ Notificare serviciu AI\n\n${readableError}\n\n${solutionText}`,
             timestamp: new Date().toLocaleTimeString("ro-RO", { hour: "2-digit", minute: "2-digit" }),
           };
           setMessages((prev) => [...prev, errorMsg]);

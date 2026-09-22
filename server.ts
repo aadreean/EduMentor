@@ -425,41 +425,56 @@ REGULĂ DE AUR PRIVIND ANALIZA IMAGINILOR ȘI EXTRAGEREA UNITĂȚILOR:
     });
 
     let responseText = "";
-    // Modele de înaltă performanță verificate cu suport multimodal pentru imagini/PDF și cotă activă
+    // Modele de înaltă performanță conforme @google/genai SDK cu suport multimodal (imagini/PDF)
     const candidateModels = [
       "gemini-3.8-flash",
-      "gemini-2.5-flash",
-      "gemini-flash-latest",
       "gemini-3.1-flash-lite",
+      "gemini-flash-latest",
     ];
     let lastError: any = null;
 
     for (const modelName of candidateModels) {
-      try {
-        const isGemini3 = modelName.startsWith("gemini-3");
-        const config: any = {
-          systemInstruction: SYSTEM_INSTRUCTION,
-          temperature: 0.2,
-          maxOutputTokens: 8192,
-        };
-        if (isGemini3) {
-          config.thinkingConfig = { thinkingLevel: ThinkingLevel.LOW };
-        }
+      for (let attempt = 1; attempt <= 2; attempt++) {
+        try {
+          const isGemini3 = modelName.startsWith("gemini-3");
+          const config: any = {
+            systemInstruction: SYSTEM_INSTRUCTION,
+            temperature: 0.2,
+            maxOutputTokens: 8192,
+          };
+          if (isGemini3) {
+            config.thinkingConfig = { thinkingLevel: ThinkingLevel.LOW };
+          }
 
-        const response = await ai.models.generateContent({
-          model: modelName,
-          contents,
-          config,
-        });
+          const response = await ai.models.generateContent({
+            model: modelName,
+            contents,
+            config,
+          });
 
-        if (response && response.text && response.text.includes("|")) {
-          responseText = response.text;
-          break;
+          if (response && response.text && response.text.trim().length > 0) {
+            responseText = response.text;
+            break;
+          }
+        } catch (err: any) {
+          lastError = err;
+          const errStr = String(err?.message || err);
+          const isBusy =
+            errStr.includes("503") ||
+            errStr.includes("UNAVAILABLE") ||
+            errStr.includes("high demand") ||
+            errStr.includes("429") ||
+            errStr.includes("RESOURCE_EXHAUSTED");
+
+          console.warn(`Model ${modelName} încercarea ${attempt} eșuată:`, errStr);
+          if (isBusy && attempt === 1) {
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+          } else {
+            break;
+          }
         }
-      } catch (err: any) {
-        lastError = err;
-        console.warn(`Model ${modelName} failed or unavailable:`, err.message || err);
       }
+      if (responseText) break;
     }
 
     if (!responseText) {
